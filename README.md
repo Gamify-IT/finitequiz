@@ -1,4 +1,4 @@
-# Lecturer-Interface
+# finite-quiz
 
 An easy to use interface that lecturers can use to configure the areas of the overworld and the shown minigames.
 
@@ -8,7 +8,7 @@ An easy to use interface that lecturers can use to configure the areas of the ov
 
 Clone the repository  
 ```sh
-git clone https://github.com/Gamify-IT/lecturer-interface.git
+git clone https://github.com/Gamify-IT/finite-quiz.git
 ```
 
 Install the dependencies  
@@ -43,44 +43,44 @@ npm run test:unit -- --coverage
 
 Build the Docker-Container
 ```sh
-docker build -t lecturer-interface-dev .
+docker build -t finite-quiz-dev .
 ```
 And run it at port 8000 with
 ```sh
-docker run -d -p 8000:80 --name lecturer-interface-dev lecturer-interface-dev
+docker run -d -p 8000:80 --name finite-quiz-dev finite-quiz-dev
 ```
 
 To monitor, stop and remove the container you can use the following commands:
 ```sh
-docker ps -a -f name=lecturer-interface-dev
+docker ps -a -f name=finite-quiz-dev
 ```
 ```sh
-docker stop lecturer-interface-dev
+docker stop finite-quiz-dev
 ```
 ```sh
-docker rm lecturer-interface-dev
+docker rm finite-quiz-dev
 ```
 
 ## User manual
 
 Run the docker container with the following command at port 8000:
 ```sh
-docker run -d -p 8000:80 --name lecturer-interface ghcr.io/gamify-it/lecturer-interface:latest
+docker run -d -p 8000:80 --name finite-quiz ghcr.io/gamify-it/finite-quiz:latest
 ```
 Now you can access it at [http://localhost:8000](http://localhost:8000).  
 To access it externally replace localhost with your IP.  
 
 To monitor the container you can use the following command:
 ```sh
-docker ps -a -f name=lecturer-interface
+docker ps -a -f name=finite-quiz
 ```
 To stop the container you can use the following command:
 ```sh
-docker stop lecturer-interface
+docker stop finite-quiz
 ```
 To remove the container you can use the following command:
 ```sh
-docker rm lecturer-interface
+docker rm finite-quiz
 ```
 
 ### Screenshot

@@ -144,7 +144,7 @@ services:
     expose:
       - "80"
 
-  lecturer-interface:
+  finite-quiz:
     build: .
     restart: always
     expose:
