@@ -17,4 +17,3 @@ app.use(BootstrapVue3);
 app.use(Toast);
 app.use(VueSidebarMenu);
 app.use(router).mount("#app");
-
