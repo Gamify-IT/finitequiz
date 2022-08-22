@@ -1,5 +1,5 @@
 const { defineConfig } = require("@vue/cli-service");
 module.exports = defineConfig({
-  publicPath: "/lecturer-interface",
+  publicPath: "/finite-quiz",
   transpileDependencies: true,
 });

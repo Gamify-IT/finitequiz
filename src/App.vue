@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import CourseSidebarMenu from "@/components/CourseSidebarMenu.vue";
+import HelloWorld from "@/components/HelloWorld.vue";
 </script>
 
 <template>
-  {{ course }}
+  <a>hi</a>
   <div class="app-wrapper">
-    <CourseSidebarMenu />
+    <HelloWorld />
     <!-- route outlet -->
     <!-- component matched by the route will render here -->
     <div class="router-view-wrapper">
