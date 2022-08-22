@@ -1,6 +1,6 @@
 # finite-quiz
 
-An easy to use interface that lecturers can use to configure the areas of the overworld and the shown minigames.
+A simple single-choice question game.
 
 ## Development
 
