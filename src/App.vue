@@ -1,15 +1,29 @@
-<script setup lang="ts">
-import HelloWorld from "@/components/HelloWorld.vue";
-</script>
+<script setup lang="ts"></script>
 
 <template>
-  <a>hi</a>
-  <div class="app-wrapper">
-    <HelloWorld />
-    <!-- route outlet -->
-    <!-- component matched by the route will render here -->
-    <div class="router-view-wrapper">
-      <router-view></router-view>
+  <div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-dark">
+      <a id="FiniteGame">FINITE GAME</a>
+    </nav>
+    <div>
+      <GameView></GameView>
     </div>
   </div>
 </template>
+<script>
+import GameView from "@/views/GameView";
+
+export default {
+  components: { GameView },
+};
+</script>
+<style scoped>
+.navbar {
+  padding-left: 1vw;
+  height: 7vh;
+}
+
+#FiniteGame {
+  color: white;
+}
+</style>
