@@ -144,7 +144,7 @@ services:
     expose:
       - "80"
 
-  finite-quiz:
+  finitequiz:
     build: .
     restart: always
     expose:

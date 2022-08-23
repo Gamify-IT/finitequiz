@@ -1,208 +1,62 @@
-export interface ICourse {
-  id: number;
-  semester: string;
-  courseName: string;
-  description: string;
-
-  active: boolean;
-  worlds: IWorld[];
-}
-
-export interface IArea {
+export class Question {
   id: string;
-  index: number;
-  staticName: string;
-  topicName: string;
-  active: boolean;
-  minigameTasks: ITask[];
-  npcs: INPC[];
-}
-
-export interface IWorld extends IArea {
-  id: string;
-  index: number;
-  staticName: string;
-  topicName: string;
-  active: boolean;
-  dungeons: IDungeon[];
-  minigameTasks: ITask[];
-  npcs: INPC[];
-}
-
-export interface IDungeon extends IArea {
-  id: string;
-  index: number;
-  staticName: string;
-  topicName: string;
-  active: boolean;
-  minigameTasks: ITask[];
-  npcs: INPC[];
-}
-
-export interface ITask {
-  id: string;
-  index: number;
-  game: Minigame;
-  configurationId: string;
-}
-
-export interface INPC {
-  id: string;
-  index: number;
-  text: string[];
-}
-
-export interface CourseInitialData {
-  courseName: string;
-  description: string;
-  semester: string;
-}
-
-export interface IChickenshockConfiguration {
-  id?: string;
-  questions: IChickenshockQuestion[];
-}
-
-export interface IChickenshockQuestion {
-  id?: string;
   text: string;
   rightAnswer: string;
   wrongAnswers: string[];
+
+  public constructor(
+    id: string,
+    text: string,
+    rightAnswer: string,
+    wrongAnswers: string[]
+  ) {
+    this.id = id;
+    this.text = text;
+    this.rightAnswer = rightAnswer;
+    this.wrongAnswers = wrongAnswers;
+  }
 }
 
-export enum Minigame {
-  NONE = "NONE",
-  CHICKENSHOCK = "CHICKENSHOCK",
-  BUGFINDER = "BUGFINDER",
-  REGEX_GAME = "REGEX-GAME",
-  CROSSWORDPUZZLE = "CROSSWORDPUZZLE",
-  GIT_CARD_GAME = "GIT-CARD-GAME",
-  UML_GAME = "UML-GAME",
+export interface IConfig {
+  questions: Question[];
 }
 
-export class ChickenshockConfiguration implements IChickenshockConfiguration {
-  id?: string;
-  questions: IChickenshockQuestion[];
-  public constructor(questions: IChickenshockQuestion[]) {
+export class Config implements IConfig {
+  questions: Question[];
+
+  public constructor(questions: Question[]) {
     this.questions = questions;
   }
 }
 
-export class Course implements ICourse {
-  id: number;
-  courseName: string;
-  semester: string;
-  description: string;
-  active: boolean;
-  worlds: IWorld[];
+export class RoundResultDTO {
+  question: Question;
+  answer: string;
 
-  public constructor(
-    id: number,
-    courseName: string,
-    semester: string,
-    description: string,
-    active: boolean,
-    worlds: IWorld[]
-  ) {
-    this.id = id;
-    this.semester = semester;
-    this.courseName = courseName;
-    this.description = description;
-    this.active = active;
-    this.worlds = worlds;
+  public constructor(question: Question, answer: string) {
+    this.question = question;
+    this.answer = answer;
   }
 }
 
-export class World implements IWorld {
-  id: string;
-  index: number;
-  staticName: string;
-  topicName: string;
-  active: boolean;
-  dungeons: IDungeon[];
-  minigameTasks: ITask[];
-  npcs: INPC[];
-
-  public constructor(
-    id: string,
-    index: number,
-    staticName: string,
-    topicName: string,
-    active: boolean,
-    dungeons: IDungeon[],
-    minigameTasks: ITask[],
-    npcs: INPC[]
-  ) {
-    this.id = id;
-    this.index = index;
-    this.staticName = staticName;
-    this.topicName = topicName;
-    this.active = active;
-    this.dungeons = dungeons;
-    this.minigameTasks = minigameTasks;
-    this.npcs = npcs;
-  }
-}
-
-export class Dungeon implements IDungeon {
-  id: string;
-  index: number;
-  staticName: string;
-  topicName: string;
-  active: boolean;
-  minigameTasks: ITask[];
-  npcs: INPC[];
-
-  public constructor(
-    id: string,
-    index: number,
-    staticName: string,
-    topicName: string,
-    active: boolean,
-    minigameTasks: ITask[],
-    npcs: INPC[]
-  ) {
-    this.id = id;
-    this.index = index;
-    this.staticName = staticName;
-    this.topicName = topicName;
-    this.active = active;
-    this.minigameTasks = minigameTasks;
-    this.npcs = npcs;
-  }
-}
-
-export class Task implements ITask {
-  id: string;
-  index: number;
-  game: Minigame;
+export class GameResultDTO {
   configurationId: string;
+  correctAnsweredQuestions: Array<RoundResultDTO>;
+  wrongAnsweredQuestions: Array<RoundResultDTO>;
+  score: number;
+  questionCount: number;
 
   public constructor(
-    id: string,
-    index: number,
-    game: Minigame,
-    configurationId: string
+    configurationId: string,
+    correctAnsweredQuestions: Array<RoundResultDTO>,
+    wrongAnsweredQuestions: Array<RoundResultDTO>,
+    score: number,
+    questionCount: number
   ) {
-    this.id = id;
-    this.index = index;
-    this.game = game;
     this.configurationId = configurationId;
+    this.correctAnsweredQuestions = correctAnsweredQuestions;
+    this.wrongAnsweredQuestions = wrongAnsweredQuestions;
+    this.score = score;
+    this.questionCount = questionCount;
   }
-}
-
-export class NPC implements INPC {
-  id: string;
-  index: number;
-  text: string[];
-
-  public constructor(id: string, index: number, text: string[]) {
-    this.id = id;
-    this.index = index;
-    this.text = text;
-  }
-}
-
-export function isWorld(area: any) {
-  return area.dungeons;
 }
