@@ -4,7 +4,12 @@ export class Question {
   rightAnswer: string;
   wrongAnswers: string[];
 
-  public constructor(id: string, text: string,  rightAnswer: string, wrongAnswers: string[]) {
+  public constructor(
+    id: string,
+    text: string,
+    rightAnswer: string,
+    wrongAnswers: string[]
+  ) {
     this.id = id;
     this.text = text;
     this.rightAnswer = rightAnswer;
@@ -13,7 +18,7 @@ export class Question {
 }
 
 export interface IConfig {
-  questions: Question[]
+  questions: Question[];
 }
 
 export class Config implements IConfig {
