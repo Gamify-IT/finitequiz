@@ -28,3 +28,35 @@ export class Config implements IConfig {
     this.questions = questions;
   }
 }
+
+export class RoundResultDTO {
+  question: Question;
+  answer: string;
+
+  public constructor(question: Question, answer: string) {
+    this.question = question;
+    this.answer = answer;
+  }
+}
+
+export class GameResultDTO {
+  configurationId: string;
+  correctAnsweredQuestions: Array<RoundResultDTO>;
+  wrongAnsweredQuestions: Array<RoundResultDTO>;
+  score: number;
+  questionCount: number;
+
+  public constructor(
+    configurationId: string,
+    correctAnsweredQuestions: Array<RoundResultDTO>,
+    wrongAnsweredQuestions: Array<RoundResultDTO>,
+    score: number,
+    questionCount: number
+  ) {
+    this.configurationId = configurationId;
+    this.correctAnsweredQuestions = correctAnsweredQuestions;
+    this.wrongAnsweredQuestions = wrongAnsweredQuestions;
+    this.score = score;
+    this.questionCount = questionCount;
+  }
+}
