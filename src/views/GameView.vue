@@ -34,8 +34,8 @@ const showEndscreen = ref(false);
 const score = ref(0);
 
 async function loadQuestions() {
-  configurationId.value = window.location.hash;
-  getQuestions("70fcd00c-b67c-46f2-be73-961dc0bc8de1").then((response) => {
+  configurationId.value = window.location.hash.replace("#", "");
+  getQuestions(configurationId.value).then((response) => {
     questions.value = response.data;
     initialQuestionCount.value = questions.value.length;
     showEndscreen.value = false;
@@ -44,7 +44,11 @@ async function loadQuestions() {
 }
 
 function chooseAnswer(chosenAnswer: string) {
-  let roundResult = new RoundResultDTO(currentQuestion.value, chosenAnswer);
+  let roundResult = new RoundResultDTO(
+    currentQuestion.value.id,
+    currentQuestion.value,
+    chosenAnswer
+  );
   if (chosenAnswer === currentQuestion.value.rightAnswer) {
     correctAnsweredQuestions.value.push(roundResult);
   } else {
@@ -69,20 +73,19 @@ function nextQuestion() {
     score.value =
       correctAnsweredQuestions.value.length / initialQuestionCount.value;
     let result = new GameResultDTO(
-      "70fcd00c-b67c-46f2-be73-961dc0bc8de1",
+      configurationId.value,
       correctAnsweredQuestions.value,
       wrongAnsweredQuestions.value,
       score.value,
       initialQuestionCount.value
     );
-    //postGameResult(result);
+    postGameResult(result);
     resetValues();
     showEndscreen.value = true;
   }
 }
 
 function resetValues() {
-  configurationId.value = "";
   questions.value = Array<Question>();
   initialQuestionCount.value = 0;
   currentQuestion.value = null;
