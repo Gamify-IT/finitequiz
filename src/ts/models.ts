@@ -30,30 +30,32 @@ export class Config implements IConfig {
 }
 
 export class RoundResultDTO {
+  questionUUId: string;
   question: Question;
   answer: string;
 
-  public constructor(question: Question, answer: string) {
+  public constructor(questionUUId: string, question: Question, answer: string) {
+    this.questionUUId = questionUUId;
     this.question = question;
     this.answer = answer;
   }
 }
 
 export class GameResultDTO {
-  configurationId: string;
+  configurationAsUUID: string;
   correctAnsweredQuestions: Array<RoundResultDTO>;
   wrongAnsweredQuestions: Array<RoundResultDTO>;
   score: number;
   questionCount: number;
 
   public constructor(
-    configurationId: string,
+    configurationAsUUID: string,
     correctAnsweredQuestions: Array<RoundResultDTO>,
     wrongAnsweredQuestions: Array<RoundResultDTO>,
     score: number,
     questionCount: number
   ) {
-    this.configurationId = configurationId;
+    this.configurationAsUUID = configurationAsUUID;
     this.correctAnsweredQuestions = correctAnsweredQuestions;
     this.wrongAnsweredQuestions = wrongAnsweredQuestions;
     this.score = score;
