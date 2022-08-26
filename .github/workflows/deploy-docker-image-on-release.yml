@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - "main"
-      - "maintenance/bugfix-backend-names"
     tags:
       - "v*"
   pull_request:
