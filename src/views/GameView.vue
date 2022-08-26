@@ -1,19 +1,46 @@
 <template>
   <div>
+    <div class="progress">
+      <div
+        name="ProgressBar"
+        class="progress-bar"
+        role="progressbar"
+        style="width: 0%"
+        aria-valuenow="{{initialQuestionCount-questions.length}}"
+        aria-valuemin="0"
+        aria-valuemax="{{initialQuestionCount}}"
+      ></div>
+    </div>
     <div v-if="currentQuestion">
-      <div id="Question">{{ currentQuestion.text }}</div>
+      <div id="QuestionWrapper">
+        <div id="Question">
+          <h2>{{ currentQuestion.text }}</h2>
+        </div>
+      </div>
+      <div id="Feedback">
+        <h1>
+          Current score: {{ correctAnsweredQuestions.length }} /
+          {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
+        </h1>
+      </div>
       <b-button
         v-for="answer in currentAnswers"
         :key="answer"
         class="Answer"
         variant="outline-info"
-        v-on:click="chooseAnswer(answer)"
+        :name="'buttonId' + answer"
+        :disabled="buttonsDisabled"
+        v-on:click="chooseAnswer($event, answer)"
       >
         {{ answer }}
       </b-button>
     </div>
-    <div v-if="showEndscreen">
-      All questions answered! Achieved: {{ score * 100 }}%!
+    <div id="EndTextWrapper" v-if="showEndscreen">
+      <div id="EndText">
+        Finished! Answered {{ correctAnsweredQuestions.length }} of
+        {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
+        questions right!
+      </div>
     </div>
   </div>
 </template>
@@ -32,6 +59,7 @@ const correctAnsweredQuestions = ref(Array<RoundResultDTO>());
 const wrongAnsweredQuestions = ref(Array<RoundResultDTO>());
 const showEndscreen = ref(false);
 const score = ref(0);
+const buttonsDisabled = ref(false);
 
 async function loadQuestions() {
   configurationId.value = window.location.hash.replace("#", "");
@@ -43,7 +71,9 @@ async function loadQuestions() {
   });
 }
 
-function chooseAnswer(chosenAnswer: string) {
+function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
+  buttonsDisabled.value = true;
+  const buttonId = buttonTarget.currentTarget.name;
   let roundResult = new RoundResultDTO(
     currentQuestion.value.id,
     currentQuestion.value,
@@ -51,15 +81,36 @@ function chooseAnswer(chosenAnswer: string) {
   );
   if (chosenAnswer === currentQuestion.value.rightAnswer) {
     correctAnsweredQuestions.value.push(roundResult);
+
+    document.getElementsByName(buttonId)[0].style.backgroundColor = "green";
   } else {
     wrongAnsweredQuestions.value.push(roundResult);
+    document.getElementsByName(buttonId)[0].style.backgroundColor = "red";
   }
-  nextQuestion();
+  score.value =
+    correctAnsweredQuestions.value.length / initialQuestionCount.value;
+  document.getElementsByName("ProgressBar")[0].style.width =
+    (
+      ((initialQuestionCount.value - questions.value.length) /
+        initialQuestionCount.value) *
+      100
+    ).toString() + "%";
+  delay(1000)
+    .then(() => resetCurrentAnswers())
+    .then(() => nextQuestion());
+}
+
+function delay(time: number) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
+function resetCurrentAnswers() {
+  currentAnswers.value = [];
 }
 
 function nextQuestion() {
+  buttonsDisabled.value = false;
   if (questions.value.length >= 1) {
-    console.log("next question");
     let number = Math.floor(Math.random() * questions.value.length);
     currentQuestion.value = questions.value[number];
     questions.value.splice(number, 1);
@@ -70,8 +121,6 @@ function nextQuestion() {
       .sort((a, b) => a.sort - b.sort)
       .map(({ value }) => value);
   } else {
-    score.value =
-      correctAnsweredQuestions.value.length / initialQuestionCount.value;
     let result = new GameResultDTO(
       configurationId.value,
       correctAnsweredQuestions.value,
@@ -87,11 +136,8 @@ function nextQuestion() {
 
 function resetValues() {
   questions.value = Array<Question>();
-  initialQuestionCount.value = 0;
   currentQuestion.value = null;
   currentAnswers.value = Array<Question>();
-  correctAnsweredQuestions.value = Array<RoundResultDTO>();
-  wrongAnsweredQuestions.value = Array<RoundResultDTO>();
 }
 
 loadQuestions();
@@ -108,14 +154,63 @@ div {
   float: left;
   height: 10vh;
   width: 47vw;
+  font-size: 2vh;
+}
+
+#QuestionWrapper {
+  float: left;
+  margin-left: 2vw;
+  margin-top: 2vw;
+  height: 25vh;
+  width: 47vw;
+  border: black solid 1px;
 }
 
 #Question {
+  height: 25vh;
+  width: 47vw;
+  text-align: center;
+  vertical-align: middle;
+  display: table-cell;
+}
+
+#Feedback {
   margin-left: 2vw;
   margin-top: 2vw;
   float: left;
   height: 25vh;
-  width: 96vw;
-  border: black solid 1px;
+  width: 47vw;
+}
+
+.progress-bar {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  -webkit-box-shadow: inset 0 0 0 2px #212529 !important;
+  -moz-box-shadow: inset 0 0 0 2px #212529 !important;
+  box-shadow: inset 0 0 0 2px #212529 !important;
+  border: none !important;
+}
+
+.progress {
+  border-radius: 0 !important;
+  background-color: white !important;
+  -webkit-box-shadow: inset 0 0 0 2px #212529 !important;
+  -moz-box-shadow: inset 0 0 0 2px #212529 !important;
+  box-shadow: inset 0 0 0 2px #212529 !important;
+  border: none !important;
+}
+
+#EndTextWrapper {
+  height: 90vh;
+  width: 99vw;
+}
+
+#EndText {
+  height: 90vh;
+  width: 99vw;
+  text-align: center;
+  vertical-align: middle;
+  display: table-cell;
+  font-size: 6vh;
 }
 </style>
