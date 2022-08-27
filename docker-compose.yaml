@@ -12,8 +12,7 @@ services:
       POSTGRES_SETUP: >
         login/default.sql
         overworld/default.sql
-        chickenshock/default.sql
-        crosswordpuzzle/default.sql
+        finitequiz/default.sql
 
   login-db:
     container_name: login-db
@@ -35,8 +34,8 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
 
-  chickenshock-db:
-      container_name: chickenshock-db
+  finitequiz-db:
+      container_name: finitequiz-db
       image: postgres:14-alpine
       restart: always
       expose:
@@ -44,16 +43,6 @@ services:
       environment:
         - POSTGRES_USER=postgres
         - POSTGRES_PASSWORD=postgres
-
-  crosswordpuzzle-db:
-    container_name: crosswordpuzzle-db
-    image: postgres:14-alpine
-    restart: always
-    expose:
-      - "5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
 
   #backends
   login-backend:
@@ -82,33 +71,19 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_URL=postgresql://overworld-db:5432/postgres
 
-  chickenshock-backend:
-    container_name:   chickenshock-backend
-    image: ghcr.io/gamify-it/chickenshock-backend:main
+  finitequiz-backend:
+    container_name:   finitequiz-backend
+    image: ghcr.io/gamify-it/finitequiz-backend:main
     restart: always
     pull_policy: always
     expose:
       - "80"
     depends_on:
-      - chickenshock-db
+      - finitequiz-db
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_URL=postgresql://chickenshock-db:5432/postgres
-
-  crosswordpuzzle-backend:
-    container_name: crosswordpuzzle-backend
-    image: ghcr.io/gamify-it/crosswordpuzzle-backend:main
-    restart: always
-    pull_policy: always
-    expose:
-      - "80"
-    depends_on:
-      - crosswordpuzzle-db
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_URL=postgresql://crosswordpuzzle-db:5432/postgres
+      - POSTGRES_URL=postgresql://finitequiz-db:5432/postgres
 
 
   #frontends
@@ -128,24 +103,10 @@ services:
     expose:
       - "80"
 
-  chickenshock:
-    container_name: chickenshock
-    image: ghcr.io/gamify-it/chickenshock:main
-    pull_policy: always
-    restart: always
-    expose:
-      - "80"
-
-  crosswordpuzzle:
-    container_name: crosswordpuzzle
-    image: ghcr.io/gamify-it/crosswordpuzzle:main
-    pull_policy: always
-    restart: always
-    expose:
-      - "80"
-
   finitequiz:
-    build: .
+    container_name: finitequiz
+    image: ghcr.io/gamify-it/finitequiz:main
+    pull_policy: always
     restart: always
     expose:
       - "80"
