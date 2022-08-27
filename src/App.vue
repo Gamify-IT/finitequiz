@@ -1,8 +1,11 @@
 <template>
   <div>
-    <nav class="navbar navbar-expand-lg navbar-light bg-dark">
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-dark"
+      aria-label="Navigation Bar"
+    >
       <a id="finite-game">Finite Quiz</a>
-      <nav class="ms-auto">
+      <nav class="ms-auto" aria-label="Navigation Bar">
         <b-button
           class="nav-buttons"
           id="restart-button"
