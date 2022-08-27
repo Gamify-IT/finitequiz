@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main # or the name of your main branch
-      - maintencance/add-test
+      - maintenance/add-test
 jobs:
   build:
     name: Build
