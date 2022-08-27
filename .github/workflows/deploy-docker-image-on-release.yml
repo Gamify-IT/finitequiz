@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - "main"
-      - "maintenance/bugfix-backend-names"
+      - "maintenance/add-test"
     tags:
       - "v*"
   pull_request:
