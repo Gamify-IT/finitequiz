@@ -2,7 +2,7 @@
   <div>
     <div class="progress">
       <div
-        name="ProgressBar"
+        name="progress-bar"
         class="progress-bar"
         role="progressbar"
         style="width: 0%"
@@ -12,12 +12,12 @@
       ></div>
     </div>
     <div v-if="currentQuestion">
-      <div id="QuestionWrapper">
-        <div id="Question">
+      <div id="question-wrapper">
+        <div id="question">
           <h2>{{ currentQuestion.text }}</h2>
         </div>
       </div>
-      <div id="Feedback">
+      <div id="feedback">
         <h1>
           Current score: {{ correctAnsweredQuestions.length }} /
           {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
@@ -26,7 +26,7 @@
       <b-button
         v-for="answer in currentAnswers"
         :key="answer"
-        class="Answer"
+        class="answer"
         variant="outline-info"
         :name="'buttonId' + answer"
         :disabled="buttonsDisabled"
@@ -35,8 +35,8 @@
         {{ answer }}
       </b-button>
     </div>
-    <div id="EndTextWrapper" v-if="showEndscreen">
-      <div id="EndText">
+    <div id="end-text-wrapper" v-if="showEndscreen">
+      <div id="end-text">
         Finished! Answered {{ correctAnsweredQuestions.length }} of
         {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
         questions right!
@@ -73,7 +73,7 @@ async function loadQuestions() {
 
 function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
   buttonsDisabled.value = true;
-  const buttonId = buttonTarget.currentTarget.name;
+  const buttonName = buttonTarget.currentTarget.name;
   let roundResult = new RoundResultDTO(
     currentQuestion.value.id,
     currentQuestion.value,
@@ -82,14 +82,14 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
   if (chosenAnswer === currentQuestion.value.rightAnswer) {
     correctAnsweredQuestions.value.push(roundResult);
 
-    document.getElementsByName(buttonId)[0].style.backgroundColor = "green";
+    document.getElementsByName(buttonName)[0].style.backgroundColor = "green";
   } else {
     wrongAnsweredQuestions.value.push(roundResult);
-    document.getElementsByName(buttonId)[0].style.backgroundColor = "red";
+    document.getElementsByName(buttonName)[0].style.backgroundColor = "red";
   }
   score.value =
     correctAnsweredQuestions.value.length / initialQuestionCount.value;
-  document.getElementsByName("ProgressBar")[0].style.width =
+  document.getElementsByName("progress-bar")[0].style.width =
     (
       ((initialQuestionCount.value - questions.value.length) /
         initialQuestionCount.value) *
@@ -148,7 +148,7 @@ div {
   /*border: black solid 1px;*/
 }
 
-.Answer {
+.answer {
   margin-left: 2vw;
   margin-top: 1vw;
   float: left;
@@ -157,7 +157,7 @@ div {
   font-size: 2vh;
 }
 
-#QuestionWrapper {
+#question-wrapper {
   float: left;
   margin-left: 2vw;
   margin-top: 2vw;
@@ -166,7 +166,7 @@ div {
   border: black solid 1px;
 }
 
-#Question {
+#question {
   height: 25vh;
   width: 47vw;
   text-align: center;
@@ -174,7 +174,7 @@ div {
   display: table-cell;
 }
 
-#Feedback {
+#feedback {
   margin-left: 2vw;
   margin-top: 2vw;
   float: left;
@@ -200,12 +200,12 @@ div {
   border: none !important;
 }
 
-#EndTextWrapper {
+#end-text-wrapper {
   height: 90vh;
   width: 99vw;
 }
 
-#EndText {
+#end-text {
   height: 90vh;
   width: 99vw;
   text-align: center;
