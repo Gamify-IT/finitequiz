@@ -3,7 +3,7 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-dark">
       <a id="FiniteGame">Finite Quiz</a>
       <nav class="ms-auto">
-        <b-button class="NavButtons" id="RestartButton" v-on:click="relaodPage">
+        <b-button class="NavButtons" id="RestartButton" v-on:click="reloadPage">
           Restart
         </b-button>
         <b-button class="NavButtons" id="CloseButton" v-on:click="closeGame">
@@ -20,7 +20,7 @@
 <script setup lang="ts">
 import GameView from "@/views/GameView";
 
-function relaodPage() {
+function reloadPage() {
   window.location.reload();
 }
 
