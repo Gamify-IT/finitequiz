@@ -82,6 +82,3 @@ To remove the container you can use the following command:
 ```sh
 docker rm finitequiz
 ```
-
-### Screenshot
-![Image](https://user-images.githubusercontent.com/39833217/178007768-a4f20b6d-5348-48e6-89a2-6956d15ea065.png)
