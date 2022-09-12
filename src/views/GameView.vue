@@ -35,6 +35,7 @@
         {{ answer }}
       </b-button>
     </div>
+    <div v-if="loading" class="loader"></div>
     <div id="end-text-wrapper" v-if="showEndscreen">
       <div id="end-text">
         Finished! Answered {{ correctAnsweredQuestions.length }} of
@@ -49,6 +50,7 @@
 import { getQuestions, postGameResult } from "@/ts/minigame-rest-client";
 import { ref } from "vue";
 import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
+import { useToast } from "vue-toastification";
 
 const configurationId = ref("");
 const questions = ref(Array<Question>());
@@ -60,6 +62,8 @@ const wrongAnsweredQuestions = ref(Array<RoundResultDTO>());
 const showEndscreen = ref(false);
 const score = ref(0);
 const buttonsDisabled = ref(false);
+const toast = useToast();
+const loading = ref(false);
 
 async function loadQuestions() {
   let locationArray = window.location.toString().split("/");
@@ -129,11 +133,17 @@ function nextQuestion() {
       score.value,
       initialQuestionCount.value
     );
-    postGameResult(result).catch((reason) => {
-      console.log(reason);
-    });
     resetValues();
-    showEndscreen.value = true;
+    loading.value = true;
+    postGameResult(result)
+      .then(() => {
+        loading.value = false;
+        showEndscreen.value = true;
+      })
+      .catch((reason) => {
+        loading.value = false;
+        toast.error(reason.response.data.message);
+      });
   }
 }
 
@@ -215,5 +225,23 @@ div {
   vertical-align: middle;
   display: table-cell;
   font-size: 6vh;
+}
+
+.loader {
+  border: 16px solid #f3f3f3;
+  border-top: 16px solid #3498db;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
