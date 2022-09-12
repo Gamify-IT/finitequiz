@@ -37,10 +37,13 @@
     </div>
     <div v-if="loading" class="loader"></div>
     <div id="end-text-wrapper" v-if="showEndscreen">
-      <div id="end-text">
+      <div v-if="!error" class="end-text">
         Finished! Answered {{ correctAnsweredQuestions.length }} of
         {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
         questions right!
+      </div>
+      <div v-if="error" class="end-text">
+        {{ errorText }}
       </div>
     </div>
   </div>
@@ -64,6 +67,8 @@ const score = ref(0);
 const buttonsDisabled = ref(false);
 const toast = useToast();
 const loading = ref(false);
+const error = ref(false);
+const errorText = ref("");
 
 async function loadQuestions() {
   let locationArray = window.location.toString().split("/");
@@ -72,6 +77,7 @@ async function loadQuestions() {
     questions.value = response.data;
     initialQuestionCount.value = questions.value.length;
     showEndscreen.value = false;
+    error.value = false;
     nextQuestion();
   });
 }
@@ -142,6 +148,9 @@ function nextQuestion() {
       })
       .catch((reason) => {
         loading.value = false;
+        showEndscreen.value = true;
+        error.value = true;
+        errorText.value = reason.response.data.message;
         toast.error(reason.response.data.message);
       });
   }
@@ -228,11 +237,13 @@ div {
 }
 
 .loader {
+  margin-left: 49vw;
+  margin-top: 49%;
   border: 16px solid #f3f3f3;
   border-top: 16px solid #3498db;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 2vw;
+  height: 2vw;
   animation: spin 2s linear infinite;
 }
 
