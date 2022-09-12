@@ -129,7 +129,9 @@ function nextQuestion() {
       score.value,
       initialQuestionCount.value
     );
-    postGameResult(result);
+    postGameResult(result).catch((reason) => {
+      alert(reason.message());
+    });
     resetValues();
     showEndscreen.value = true;
   }
