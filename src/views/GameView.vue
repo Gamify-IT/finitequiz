@@ -130,7 +130,7 @@ function nextQuestion() {
       initialQuestionCount.value
     );
     postGameResult(result).catch((reason) => {
-      alert(reason.message());
+      alert(reason.data.message());
     });
     resetValues();
     showEndscreen.value = true;
