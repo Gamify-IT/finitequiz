@@ -49,7 +49,6 @@
 import { getQuestions, postGameResult } from "@/ts/minigame-rest-client";
 import { ref } from "vue";
 import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
-import {error} from "jquery";
 
 const configurationId = ref("");
 const questions = ref(Array<Question>());
