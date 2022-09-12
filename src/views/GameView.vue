@@ -227,7 +227,7 @@ div {
   width: 99vw;
 }
 
-#end-text {
+.end-text {
   height: 90vh;
   width: 99vw;
   text-align: center;
