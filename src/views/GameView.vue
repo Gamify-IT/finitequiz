@@ -62,7 +62,8 @@ const score = ref(0);
 const buttonsDisabled = ref(false);
 
 async function loadQuestions() {
-  configurationId.value = window.location.hash.replace("#", "");
+  let locationArray = window.location.toString().split("/");
+  configurationId.value = locationArray[locationArray.length - 1];
   getQuestions(configurationId.value).then((response) => {
     questions.value = response.data;
     initialQuestionCount.value = questions.value.length;
