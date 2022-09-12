@@ -35,11 +35,15 @@
         {{ answer }}
       </b-button>
     </div>
+    <div v-if="loading" class="loader"></div>
     <div id="end-text-wrapper" v-if="showEndscreen">
-      <div id="end-text">
+      <div v-if="!error" class="end-text">
         Finished! Answered {{ correctAnsweredQuestions.length }} of
         {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
         questions right!
+      </div>
+      <div v-if="error" class="end-text">
+        {{ errorText }}
       </div>
     </div>
   </div>
@@ -49,6 +53,7 @@
 import { getQuestions, postGameResult } from "@/ts/minigame-rest-client";
 import { ref } from "vue";
 import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
+import { useToast } from "vue-toastification";
 
 const configurationId = ref("");
 const questions = ref(Array<Question>());
@@ -60,6 +65,10 @@ const wrongAnsweredQuestions = ref(Array<RoundResultDTO>());
 const showEndscreen = ref(false);
 const score = ref(0);
 const buttonsDisabled = ref(false);
+const toast = useToast();
+const loading = ref(false);
+const error = ref(false);
+const errorText = ref("");
 
 async function loadQuestions() {
   let locationArray = window.location.toString().split("/");
@@ -68,6 +77,7 @@ async function loadQuestions() {
     questions.value = response.data;
     initialQuestionCount.value = questions.value.length;
     showEndscreen.value = false;
+    error.value = false;
     nextQuestion();
   });
 }
@@ -129,9 +139,20 @@ function nextQuestion() {
       score.value,
       initialQuestionCount.value
     );
-    postGameResult(result);
     resetValues();
-    showEndscreen.value = true;
+    loading.value = true;
+    postGameResult(result)
+      .then(() => {
+        loading.value = false;
+        showEndscreen.value = true;
+      })
+      .catch((reason) => {
+        loading.value = false;
+        showEndscreen.value = true;
+        error.value = true;
+        errorText.value = reason.response.data.message;
+        toast.error(reason.response.data.message);
+      });
   }
 }
 
@@ -206,12 +227,32 @@ div {
   width: 99vw;
 }
 
-#end-text {
+.end-text {
   height: 90vh;
   width: 99vw;
   text-align: center;
   vertical-align: middle;
   display: table-cell;
   font-size: 6vh;
+}
+
+.loader {
+  margin-left: 49vw;
+  margin-top: 45vh;
+  border: 16px solid #f3f3f3;
+  border-top: 16px solid #3498db;
+  border-radius: 50%;
+  width: 2vw;
+  height: 2vw;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
