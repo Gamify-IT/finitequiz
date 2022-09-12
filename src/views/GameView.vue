@@ -238,7 +238,7 @@ div {
 
 .loader {
   margin-left: 49vw;
-  margin-top: 49%;
+  margin-top: 45vh;
   border: 16px solid #f3f3f3;
   border-top: 16px solid #3498db;
   border-radius: 50%;
