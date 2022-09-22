@@ -2,6 +2,18 @@
 
 This repository contains the frontend for the [Finitequiz minigame](https://gamifyit-docs.readthedocs.io/en/latest/user-manuals/minigames/finitequiz.html).
 
+# Table of contents
+
+<!-- TOC -->
+* [Links](#links)
+* [Development](#development)
+  * [Getting started](#getting-started)
+    * [Run with Docker-compose](#run-with-docker-compose)
+  * [Compile and Hot-Reload for Development](#compile-and-hot-reload-for-development)
+  * [Test](#test)
+  * [Build](#build)
+<!-- TOC -->
+
 ## Links
 
 - User documentation for the minigame can be found [here](https://gamifyit-docs.readthedocs.io/en/latest/user-manuals/minigames/finitequiz.html).
