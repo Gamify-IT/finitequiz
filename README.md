@@ -66,25 +66,3 @@ docker stop finitequiz-dev
 ```sh
 docker rm finitequiz-dev
 ```
-
-## User manual
-
-Run the docker container with the following command at port 8000:
-```sh
-docker run -d -p 8000:80 --name finitequiz ghcr.io/gamify-it/finitequiz:latest
-```
-Now you can access it at [http://localhost:8000](http://localhost:8000).  
-To access it externally replace localhost with your IP.  
-
-To monitor the container you can use the following command:
-```sh
-docker ps -a -f name=finitequiz
-```
-To stop the container you can use the following command:
-```sh
-docker stop finitequiz
-```
-To remove the container you can use the following command:
-```sh
-docker rm finitequiz
-```
