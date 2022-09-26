@@ -70,6 +70,9 @@ const loading = ref(false);
 const error = ref(false);
 const errorText = ref("");
 
+/**
+ * Initialize all fields
+ */
 async function loadQuestions() {
   let locationArray = window.location.toString().split("/");
   configurationId.value = locationArray[locationArray.length - 1];
@@ -82,6 +85,11 @@ async function loadQuestions() {
   });
 }
 
+/**
+ * Handles the chosen answer
+ * @param buttonTarget the button containing the chosen answer
+ * @param chosenAnswer text of the chosen answer
+ */
 function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
   buttonsDisabled.value = true;
   const buttonName = buttonTarget.currentTarget.name;
@@ -111,14 +119,24 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
     .then(() => nextQuestion());
 }
 
+/**
+ * Delay for a set time
+ * @param time amount of time to delay
+ */
 function delay(time: number) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
+/**
+ * Reset the current answers
+ */
 function resetCurrentAnswers() {
   currentAnswers.value = [];
 }
 
+/**
+ * Randomly choose next question
+ */
 function nextQuestion() {
   buttonsDisabled.value = false;
   if (questions.value.length >= 1) {
@@ -156,6 +174,9 @@ function nextQuestion() {
   }
 }
 
+/**
+ * Reset fields
+ */
 function resetValues() {
   questions.value = Array<Question>();
   currentQuestion.value = null;
@@ -166,10 +187,6 @@ loadQuestions();
 </script>
 
 <style scoped>
-div {
-  /*border: black solid 1px;*/
-}
-
 .answer {
   margin-left: 2vw;
   margin-top: 1vw;
