@@ -1,6 +1,25 @@
-# finitequiz
+# Finitequiz
 
-A simple single-choice question game.
+![game screenshot](https://raw.githubusercontent.com/Gamify-IT/docs/main/user-manuals/minigames/assets/finitequiz-game.webp)
+This repository contains the frontend for the [Finitequiz minigame](https://gamifyit-docs.readthedocs.io/en/latest/user-manuals/minigames/finitequiz.html).
+
+# Table of contents
+
+<!-- TOC -->
+* [Links](#links)
+* [Development](#development)
+  * [Getting started](#getting-started)
+    * [Run with Docker-compose](#run-with-docker-compose)
+  * [Compile and Hot-Reload for Development](#compile-and-hot-reload-for-development)
+  * [Test](#test)
+  * [Build](#build)
+<!-- TOC -->
+
+## Links
+
+- User documentation for the minigame can be found [here](https://gamifyit-docs.readthedocs.io/en/latest/user-manuals/minigames/finitequiz.html).
+- For the backend, see the [Gamify-IT/finitequiz-backend repository](https://github.com/Gamify-IT/finitequiz-backend).
+- The installation manual and setup instructions can be found [here](https://gamifyit-docs.readthedocs.io/en/latest/install-manuals/index.html).
 
 ## Development
 
@@ -59,26 +78,4 @@ docker stop finitequiz-dev
 ```
 ```sh
 docker rm finitequiz-dev
-```
-
-## User manual
-
-Run the docker container with the following command at port 8000:
-```sh
-docker run -d -p 8000:80 --name finitequiz ghcr.io/gamify-it/finitequiz:latest
-```
-Now you can access it at [http://localhost:8000](http://localhost:8000).  
-To access it externally replace localhost with your IP.  
-
-To monitor the container you can use the following command:
-```sh
-docker ps -a -f name=finitequiz
-```
-To stop the container you can use the following command:
-```sh
-docker stop finitequiz
-```
-To remove the container you can use the following command:
-```sh
-docker rm finitequiz
 ```
