@@ -27,10 +27,16 @@
 <script setup lang="ts">
 import GameView from "@/views/GameView";
 
+/**
+ * Reload the page
+ */
 function reloadPage() {
   window.location.reload();
 }
 
+/**
+ * Close the Minigame iframe
+ */
 function closeGame() {
   window.parent.postMessage("CLOSE ME");
 }

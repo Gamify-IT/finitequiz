@@ -1,3 +1,6 @@
+/**
+ * This file defines all the needed type-correct models
+ */
 export class Question {
   id: string;
   text: string;
