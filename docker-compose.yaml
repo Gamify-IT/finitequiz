@@ -10,9 +10,9 @@ services:
     restart: on-failure
     environment:
       POSTGRES_SETUP: >
-        keycloak/default.sql
         overworld/default.sql
         finitequiz/default.sql
+        keycloak/default.sql
 
   keycloak-db:
     container_name: keycloak-db
@@ -67,7 +67,7 @@ services:
       KC_HTTP_PORT: 80
 
   overworld-backend:
-    container_name:   overworld-backend
+    container_name: overworld-backend
     image: ghcr.io/gamify-it/overworld-backend:main
     restart: always
     pull_policy: always
@@ -79,6 +79,9 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_URL=postgresql://overworld-db:5432/postgres
+      - FINITEQUIZ_URL=http://finitequiz-backend/api/v1
+      - KEYCLOAK_ISSUER=http://localhost/keycloak/realms/Gamify-IT
+      - KEYCLOAK_URL=http://keycloak/keycloak/realms/Gamify-IT
 
   finitequiz-backend:
     container_name:   finitequiz-backend
@@ -94,6 +97,8 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_URL=postgresql://finitequiz-db:5432/postgres
       - OVERWORLD_URL=http://overworld-backend/api/v1
+      - KEYCLOAK_ISSUER=http://localhost/keycloak/realms/Gamify-IT
+      - KEYCLOAK_URL=http://keycloak/keycloak/realms/Gamify-IT
 
   #frontends
   landing-page:
@@ -116,6 +121,13 @@ services:
     container_name: finitequiz
     image: ghcr.io/gamify-it/finitequiz:main
     pull_policy: always
+    restart: always
+    expose:
+      - "80"
+
+  lecturer-interface:
+    container_name: lecturer-interface
+    image: ghcr.io/gamify-it/lecturer-interface:main
     restart: always
     expose:
       - "80"
