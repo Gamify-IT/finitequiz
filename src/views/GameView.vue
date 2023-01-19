@@ -54,7 +54,6 @@ import { getQuestions, postGameResult } from "@/ts/minigame-rest-client";
 import { ref } from "vue";
 import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 import { useToast } from "vue-toastification";
-import { start } from "repl";
 
 const configurationId = ref("");
 const questions = ref(Array<Question>());
