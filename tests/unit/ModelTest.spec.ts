@@ -16,7 +16,8 @@ describe("models.ts", () => {
       [roundResultDTO],
       [],
       1,
-      1
+      1,
+      60
     );
     expect(gameResultDTO.score).toBe(1);
   });

@@ -54,6 +54,7 @@ import { getQuestions, postGameResult } from "@/ts/minigame-rest-client";
 import { ref } from "vue";
 import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 import { useToast } from "vue-toastification";
+import { start } from "repl";
 
 const configurationId = ref("");
 const questions = ref(Array<Question>());
@@ -64,6 +65,7 @@ const correctAnsweredQuestions = ref(Array<RoundResultDTO>());
 const wrongAnsweredQuestions = ref(Array<RoundResultDTO>());
 const showEndscreen = ref(false);
 const score = ref(0);
+const startTime = getCurrentTimeInSeconds();
 const buttonsDisabled = ref(false);
 const toast = useToast();
 const loading = ref(false);
@@ -134,6 +136,10 @@ function resetCurrentAnswers() {
   currentAnswers.value = [];
 }
 
+function getCurrentTimeInSeconds() {
+  return new Date().getTime() / 1000;
+}
+
 /**
  * Randomly choose next question
  */
@@ -150,12 +156,14 @@ function nextQuestion() {
       .sort((a, b) => a.sort - b.sort)
       .map(({ value }) => value);
   } else {
+    const timeSpent = Math.ceil(getCurrentTimeInSeconds() - startTime);
     let result = new GameResultDTO(
       configurationId.value,
       correctAnsweredQuestions.value,
       wrongAnsweredQuestions.value,
       score.value,
-      initialQuestionCount.value
+      initialQuestionCount.value,
+      timeSpent
     );
     resetValues();
     loading.value = true;

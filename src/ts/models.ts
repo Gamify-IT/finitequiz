@@ -45,23 +45,12 @@ export class RoundResultDTO {
 }
 
 export class GameResultDTO {
-  configurationAsUUID: string;
-  correctAnsweredQuestions: Array<RoundResultDTO>;
-  wrongAnsweredQuestions: Array<RoundResultDTO>;
-  score: number;
-  questionCount: number;
-
   public constructor(
-    configurationAsUUID: string,
-    correctAnsweredQuestions: Array<RoundResultDTO>,
-    wrongAnsweredQuestions: Array<RoundResultDTO>,
-    score: number,
-    questionCount: number
-  ) {
-    this.configurationAsUUID = configurationAsUUID;
-    this.correctAnsweredQuestions = correctAnsweredQuestions;
-    this.wrongAnsweredQuestions = wrongAnsweredQuestions;
-    this.score = score;
-    this.questionCount = questionCount;
-  }
+    public configurationAsUUID: string,
+    public correctAnsweredQuestions: Array<RoundResultDTO>,
+    public wrongAnsweredQuestions: Array<RoundResultDTO>,
+    public score: number,
+    public questionCount: number,
+    public timeSpent: number
+  ) {}
 }
