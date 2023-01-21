@@ -118,14 +118,6 @@ services:
     expose:
       - "80"
 
-  finitequiz:
-    container_name: finitequiz
-    image: ghcr.io/gamify-it/finitequiz:main
-    pull_policy: always
-    restart: always
-    expose:
-      - "80"
-
   lecturer-interface:
     container_name: lecturer-interface
     image: ghcr.io/gamify-it/lecturer-interface:main
