@@ -129,6 +129,7 @@ services:
     container_name: finitequiz
     image: ghcr.io/gamify-it/finitequiz:development
     restart: always
+    pull_policy: always
     expose:
       - "80"
 
