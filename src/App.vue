@@ -42,7 +42,7 @@ function reloadPage() {
  * Close the Minigame iframe
  */
 function closeGame() {
-  playClickSound();
+  playClickSound(); 
   window.parent.postMessage("CLOSE ME");
 }
 
