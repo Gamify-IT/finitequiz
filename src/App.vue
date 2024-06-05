@@ -26,11 +26,15 @@
 
 <script setup lang="ts">
 import GameView from "@/views/GameView";
+import { onMounted, onUnmounted } from "vue";
+const backgroundMusic = new Audio("@/assets/music/background_music.mp3");
+const clickSound = new Audio("@/assets/music/click_sound.mp3");
 
 /**
  * Reload the page
  */
 function reloadPage() {
+  playClickSound();
   window.location.reload();
 }
 
@@ -38,8 +42,22 @@ function reloadPage() {
  * Close the Minigame iframe
  */
 function closeGame() {
+  playClickSound();
   window.parent.postMessage("CLOSE ME");
 }
+
+function playClickSound(){
+  clickSound.play();
+}
+onMounted(() => {
+  backgroundMusic.play();
+  backgroundMusic.loop = true;
+});
+
+onUnmounted(() => {
+  backgroundMusic.pause();
+  backgroundMusic.currentTime = 0;
+});
 </script>
 <style scoped>
 .navbar {

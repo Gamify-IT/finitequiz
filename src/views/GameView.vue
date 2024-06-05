@@ -92,6 +92,7 @@ async function loadQuestions() {
  * @param chosenAnswer text of the chosen answer
  */
 function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
+  playSound("@/assets/music/answer_click_sound.mp3");
   buttonsDisabled.value = true;
   const buttonName = buttonTarget.currentTarget.name;
   let roundResult = new RoundResultDTO(
@@ -101,11 +102,12 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
   );
   if (chosenAnswer === currentQuestion.value.rightAnswer) {
     correctAnsweredQuestions.value.push(roundResult);
-
     document.getElementsByName(buttonName)[0].style.backgroundColor = "green";
+    playSound("@/assets/music/correct_answer_sound.mp3");
   } else {
     wrongAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "red";
+    playSound("@/assets/music/wrong_answer_sound.mp3");
   }
   score.value =
     correctAnsweredQuestions.value.length / initialQuestionCount.value;
@@ -170,6 +172,7 @@ function nextQuestion() {
       .then(() => {
         loading.value = false;
         showEndscreen.value = true;
+        playSound("@/assets/music/finish_sound.mp3");
       })
       .catch((reason) => {
         loading.value = false;
@@ -188,6 +191,11 @@ function resetValues() {
   questions.value = Array<Question>();
   currentQuestion.value = null;
   currentAnswers.value = Array<Question>();
+}
+
+function playSound(pathToAudioFile: string){
+  const sound = new Audio(pathToAudioFile);
+  sound.play();
 }
 
 loadQuestions();
