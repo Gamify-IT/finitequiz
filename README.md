@@ -79,3 +79,23 @@ docker stop finitequiz-dev
 ```sh
 docker rm finitequiz-dev
 ```
+
+## Audio sources 
+
+1.	Background music
+https://pixabay.com/de/music/schlagt-hail-126903/
+
+2.	Answer click sound
+https://pixabay.com/de/sound-effects/interface-124464/
+
+3.	Button click sound
+https://pixabay.com/de/sound-effects/interface-button-154180/
+
+4.	Correct answer 
+https://mixkit.co/free-sound-effects/correct/   (mixkit-correct-answer-tone-2870)
+
+5.	End screen sound
+https://mixkit.co/free-sound-effects/win/   (mixkit-melodic-bonus-collect-1938)
+
+6.	Wrong answer 
+https://pixabay.com/de/sound-effects/error-126627/
