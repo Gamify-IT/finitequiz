@@ -124,14 +124,6 @@ services:
     restart: always
     expose:
       - "80"
-      
-  finitequiz:
-    container_name: finitequiz
-    image: ghcr.io/gamify-it/finitequiz:development
-    restart: always
-    pull_policy: always
-    expose:
-      - "80"
 
   # reverse-proxy
   reverse-proxy:
