@@ -22,60 +22,40 @@ This repository contains the frontend for the [Finitequiz minigame](https://gami
 - The installation manual and setup instructions can be found [here](https://gamifyit-docs.readthedocs.io/en/latest/install-manuals/index.html).
 
 ## Development
-
+> Beginning of additions (that work)
 ### Getting started
 
-Clone the repository  
+Clone the repository
 ```sh
 git clone https://github.com/Gamify-IT/finitequiz.git
 ```
 
-Install the dependencies  
+Install the dependencies
 ```sh
 npm install
 ```
 
-#### Run with Docker-compose
-
-Start all dependencies with our docker-compose files.
-Check the [manual for docker-compose](https://github.com/Gamify-IT/docs/blob/main/dev-manuals/languages/docker/docker-compose.md).
-
 ### Compile and Hot-Reload for Development
-
+To run the project locally with your IDE feature and have all necessary dependencies running,
+start the dependencies via docker:
+```sh
+docker compose -f docker-compose-dev.yaml up
+```
+Then start the frontend with:
 ```sh
 npm run serve
 ```
+You can now access the game at [localhost](http://localhost).
 
-### Test
-
-Run the tests:
+### Build your local changes as a docker container
+To build and run your local changes as a docker container use:
 ```sh
-npm run test:unit
+docker compose up --build
 ```
+You can remove the container with:
 
-To also get the test coverage:
 ```sh
-npm run test:unit -- --coverage
-```
-
-### Build
-
-Build the Docker-Container
-```sh
-docker build -t finitequiz-dev .
-```
-And run it at port 8000 with
-```sh
-docker run -d -p 8000:80 --name finitequiz-dev finitequiz-dev
+docker compose down
 ```
 
-To monitor, stop and remove the container you can use the following commands:
-```sh
-docker ps -a -f name=finitequiz-dev
-```
-```sh
-docker stop finitequiz-dev
-```
-```sh
-docker rm finitequiz-dev
-```
+> End of additions
