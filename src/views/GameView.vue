@@ -208,7 +208,7 @@ loadQuestions();
 }
 
 .gold-image {
-  width: 30px;
+  width: 70px;
   height: auto;
 }
 
