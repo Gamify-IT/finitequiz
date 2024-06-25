@@ -40,7 +40,8 @@
       <div v-if="!error" class="end-text">
         Finished! Answered {{ correctAnsweredQuestions.length }} of
         {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
-        questions right! You've gained {{ rewards }} rewards!
+        questions right! You've gained {{ rewards }} coins!
+        <img src="@/assets/gold.png" alt="coin" class="gold-image" />
       </div>
       <div v-if="error" class="end-text">
         {{ errorText }}
@@ -204,6 +205,11 @@ loadQuestions();
   height: 10vh;
   width: 47vw;
   font-size: 2vh;
+}
+
+.gold-image {
+  width: 30px;
+  height: auto;
 }
 
 #question-wrapper {
