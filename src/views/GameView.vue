@@ -40,7 +40,7 @@
       <div v-if="!error" class="end-text">
         Finished! Answered {{ correctAnsweredQuestions.length }} of
         {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
-        questions right!
+        questions right! You've gained {{ rewards }} rewards!
       </div>
       <div v-if="error" class="end-text">
         {{ errorText }}
@@ -70,6 +70,7 @@ const toast = useToast();
 const loading = ref(false);
 const error = ref(false);
 const errorText = ref("");
+const rewards = ref(0);
 
 /**
  * Initialize all fields
@@ -109,6 +110,8 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
   }
   score.value =
     correctAnsweredQuestions.value.length / initialQuestionCount.value;
+  rewards.value = Math.floor(score.value * 10);
+
   document.getElementsByName("progress-bar")[0].style.width =
     (
       ((initialQuestionCount.value - questions.value.length) /
