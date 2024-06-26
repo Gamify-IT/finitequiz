@@ -54,6 +54,9 @@ import { getQuestions, postGameResult } from "@/ts/minigame-rest-client";
 import { ref } from "vue";
 import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 import { useToast } from "vue-toastification";
+import correctAnswerSoundSource from '/src/assets/music/correct_answer_sound.wav';
+import wrongAnswerSoundSource from '/src/assets/music/wrong_answer_sound.mp3';
+import finishSoundSource from '/src/assets/music/finish_sound.wav';
 
 const configurationId = ref("");
 const questions = ref(Array<Question>());
@@ -92,7 +95,6 @@ async function loadQuestions() {
  * @param chosenAnswer text of the chosen answer
  */
 function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
-  playSound("@/assets/music/answer_click_sound.mp3");
   buttonsDisabled.value = true;
   const buttonName = buttonTarget.currentTarget.name;
   let roundResult = new RoundResultDTO(
@@ -103,11 +105,11 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
   if (chosenAnswer === currentQuestion.value.rightAnswer) {
     correctAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "green";
-    playSound("@/assets/music/correct_answer_sound.mp3");
+    playSound(correctAnswerSoundSource);
   } else {
     wrongAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "red";
-    playSound("@/assets/music/wrong_answer_sound.mp3");
+    playSound(wrongAnswerSoundSource);
   }
   score.value =
     correctAnsweredQuestions.value.length / initialQuestionCount.value;
@@ -172,7 +174,7 @@ function nextQuestion() {
       .then(() => {
         loading.value = false;
         showEndscreen.value = true;
-        playSound("@/assets/music/finish_sound.mp3");
+        playSound(finishSoundSource);
       })
       .catch((reason) => {
         loading.value = false;

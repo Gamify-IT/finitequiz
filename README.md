@@ -85,17 +85,14 @@ docker rm finitequiz-dev
 1.	Background music
 https://pixabay.com/de/music/schlagt-hail-126903/
 
-2.	Answer click sound
-https://pixabay.com/de/sound-effects/interface-124464/
-
-3.	Button click sound
+2.	Click sound
 https://pixabay.com/de/sound-effects/interface-button-154180/
 
-4.	Correct answer 
+3.	Correct answer 
 https://mixkit.co/free-sound-effects/correct/   (mixkit-correct-answer-tone-2870)
 
-5.	End screen sound
+4.	End screen sound
 https://mixkit.co/free-sound-effects/win/   (mixkit-melodic-bonus-collect-1938)
 
-6.	Wrong answer 
+5.	Wrong answer 
 https://pixabay.com/de/sound-effects/error-126627/
