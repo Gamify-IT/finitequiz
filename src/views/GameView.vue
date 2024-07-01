@@ -53,11 +53,10 @@
 import { getQuestions, postGameResult} from "@/ts/minigame-rest-client";
 import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 import { useToast } from "vue-toastification";
-import { useStore } from 'vuex';
+import store from "@/store/index";
 import { computed, ref } from "vue";
 
 
-const store = useStore();
 
 
 const configurationId = ref("");
