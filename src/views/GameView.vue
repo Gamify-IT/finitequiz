@@ -40,7 +40,7 @@
       <div v-if="!error" class="end-text">
         Finished! Answered {{ correctAnsweredQuestions.length }} of
         {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
-        questions right! You've gained {{ rewards }} coins!
+        questions right!{{ rewards }}!
         <img src="@/assets/gold.png" alt="coin" class="gold-image" />
       </div>
       <div v-if="error" class="end-text">
@@ -51,10 +51,16 @@
 </template>
 
 <script setup lang="ts">
-import { getQuestions, postGameResult } from "@/ts/minigame-rest-client";
-import { ref } from "vue";
+import { getQuestions, postGameResult} from "@/ts/minigame-rest-client";
 import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 import { useToast } from "vue-toastification";
+import { useStore } from 'vuex';
+import { computed, ref } from "vue";
+
+
+const store = useStore();
+const rewards = store.state.rewards;
+
 
 const configurationId = ref("");
 const questions = ref(Array<Question>());
@@ -71,7 +77,7 @@ const toast = useToast();
 const loading = ref(false);
 const error = ref(false);
 const errorText = ref("");
-const rewards = ref(0);
+const rewardsDefault = ref(0);
 
 /**
  * Initialize all fields
@@ -111,7 +117,6 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
   }
   score.value =
     correctAnsweredQuestions.value.length / initialQuestionCount.value;
-  rewards.value = Math.floor(score.value * 10);
 
   document.getElementsByName("progress-bar")[0].style.width =
     (
@@ -166,7 +171,8 @@ function nextQuestion() {
       wrongAnsweredQuestions.value,
       score.value,
       initialQuestionCount.value,
-      timeSpent
+      timeSpent,
+      rewardsDefault.value
     );
     resetValues();
     loading.value = true;
