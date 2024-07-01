@@ -40,8 +40,7 @@
       <div v-if="!error" class="end-text">
         Finished! Answered {{ correctAnsweredQuestions.length }} of
         {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
-        questions right!{{ store.state.rewards }}!
-        <img src="@/assets/gold.png" alt="coin" class="gold-image" />
+        questions right! {{ store.state.rewards }}!
       </div>
       <div v-if="error" class="end-text">
         {{ errorText }}
@@ -77,7 +76,6 @@ const loading = ref(false);
 const error = ref(false);
 const errorText = ref("");
 const rewardsDefault = ref(0);
-console.log(store.state.rewards); // Log the data being sent
 
 /**
  * Initialize all fields
@@ -185,8 +183,8 @@ function nextQuestion() {
         loading.value = false;
         showEndscreen.value = true;
         error.value = true;
-        errorText.value = reason.response.data.message;
-        toast.error(reason.response.data.message);
+        errorText.value = reason.message;
+        toast.error(reason.message);
       });
   }
 }

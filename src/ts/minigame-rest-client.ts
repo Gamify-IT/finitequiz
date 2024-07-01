@@ -24,7 +24,7 @@ export async function postGameResult(
     console.log("Received response from backend:", response.data); // Log the response from backend
     const returnedResult = fromDTO(response.data);
     store.commit('setRewards', returnedResult.rewards)
-    
+
   } catch (error) {
     console.error("Error sending GameResultDTO:", error); // Log any error
     throw error; // Rethrow the error to be handled by the caller
