@@ -18,7 +18,7 @@ describe("models.ts", () => {
       1,
       1,
       60,
-      0
+      2
     );
     expect(gameResultDTO.score).toBe(1);
   });
