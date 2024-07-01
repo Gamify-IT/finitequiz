@@ -40,7 +40,7 @@
       <div v-if="!error" class="end-text">
         Finished! Answered {{ correctAnsweredQuestions.length }} of
         {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
-        questions right!{{ rewards }}!
+        questions right!{{ store.state.rewards }}!
         <img src="@/assets/gold.png" alt="coin" class="gold-image" />
       </div>
       <div v-if="error" class="end-text">
@@ -59,7 +59,6 @@ import { computed, ref } from "vue";
 
 
 const store = useStore();
-const rewards = store.state.rewards;
 
 
 const configurationId = ref("");
@@ -78,6 +77,7 @@ const loading = ref(false);
 const error = ref(false);
 const errorText = ref("");
 const rewardsDefault = ref(0);
+console.log(store.state.rewards); // Log the data being sent
 
 /**
  * Initialize all fields
