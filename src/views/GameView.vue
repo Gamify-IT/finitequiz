@@ -40,7 +40,7 @@
       <div v-if="!error" class="end-text">
         Finished! Answered {{ correctAnsweredQuestions.length }} of
         {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
-        questions right! {{ store.state.rewards }}!
+        questions right! You've gained <span class="gold-text">{{ store.state.rewards }} coins</span>!
       </div>
       <div v-if="error" class="end-text">
         {{ errorText }}
@@ -291,4 +291,10 @@ loadQuestions();
     transform: rotate(360deg);
   }
 }
+
+.gold-text {
+  color: gold;
+  font-weight: bold;
+}
+
 </style>
