@@ -1,16 +1,18 @@
 <template>
   <div>
+    <!-- Progress bar -->
     <div class="progress">
       <div
-        name="progress-bar"
-        class="progress-bar"
-        role="progressbar"
-        style="width: 0%"
-        aria-valuenow="{{initialQuestionCount-questions.length}}"
-        aria-valuemin="0"
-        aria-valuemax="{{initialQuestionCount}}"
+          name="progress-bar"
+          class="progress-bar"
+          role="progressbar"
+          :style="{ width: progressBarWidth + '%' }"
+          :aria-valuenow="progressBarValue"
+          aria-valuemin="0"
+          :aria-valuemax="initialQuestionCount"
       ></div>
     </div>
+
     <div v-if="currentQuestion">
       <div id="question-wrapper">
         <div id="question">
@@ -24,23 +26,62 @@
         </h1>
       </div>
       <b-button
-        v-for="answer in currentAnswers"
-        :key="answer"
-        class="answer"
-        variant="outline-info"
-        :name="'buttonId' + answer"
-        :disabled="buttonsDisabled"
-        v-on:click="chooseAnswer($event, answer)"
+          v-for="answer in currentAnswers"
+          :key="answer"
+          class="answer"
+          variant="outline-info"
+          :name="'buttonId' + answer"
+          :disabled="buttonsDisabled"
+          @click="chooseAnswer($event, answer)"
       >
         {{ answer }}
       </b-button>
     </div>
+
     <div v-if="loading" class="loader"></div>
+
     <div id="end-text-wrapper" v-if="showEndscreen">
       <div v-if="!error" class="end-text">
-        Finished! Answered {{ correctAnsweredQuestions.length }} of
-        {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
-        questions right! You've gained <span class="gold-text">{{ store.state.rewards }} coins</span>!
+        <h1>Quiz Finished!</h1>
+        <p>
+          You answered {{ correctAnsweredQuestions.length }} of
+          {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
+          questions correctly.
+        </p>
+        <p>
+          You've earned
+          <span class="gold-text">{{ store.state.rewards }}</span> coins!
+        </p>
+        <p v-if="store.state.rewards <= 4">Don't give up! You will get there!</p>
+        <p v-else-if="store.state.rewards <= 7">Good job!</p>
+        <p v-else>Wow! Congratulations!</p>
+
+        <div class="results">
+          <h2>Results Summary:</h2>
+        </div>
+        <div class="results-table">
+          <table>
+            <thead>
+            <tr>
+              <th>Question</th>
+              <th>Correct Answer</th>
+              <th>Result</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(result, index) in correctAnsweredQuestions" :key="'correct' + index">
+              <td>{{ result.question.text }}</td>
+              <td>{{ result.question.rightAnswer }}</td>
+              <td><span class="result-icon green">&#10004;</span></td>
+            </tr>
+            <tr v-for="(result, index) in wrongAnsweredQuestions" :key="'wrong' + index">
+              <td>{{ result.question.text }}</td>
+              <td>{{ result.question.rightAnswer }}</td>
+              <td><span class="result-icon red">&#10008;</span></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
       <div v-if="error" class="end-text">
         {{ errorText }}
@@ -50,22 +91,19 @@
 </template>
 
 <script setup lang="ts">
-import { getQuestions, postGameResult} from "@/ts/minigame-rest-client";
+import { getQuestions, postGameResult } from "@/ts/minigame-rest-client";
 import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 import { useToast } from "vue-toastification";
 import store from "@/store/index";
 import { computed, ref } from "vue";
 
-
-
-
 const configurationId = ref("");
-const questions = ref(Array<Question>());
+const questions = ref<Array<Question>>([]);
 const initialQuestionCount = ref(0);
-const currentQuestion = ref();
-const currentAnswers = ref(Array<Question>());
-const correctAnsweredQuestions = ref(Array<RoundResultDTO>());
-const wrongAnsweredQuestions = ref(Array<RoundResultDTO>());
+const currentQuestion = ref<Question | null>(null);
+const currentAnswers = ref<Array<string>>([]);
+const correctAnsweredQuestions = ref<Array<RoundResultDTO>>([]);
+const wrongAnsweredQuestions = ref<Array<RoundResultDTO>>([]);
 const showEndscreen = ref(false);
 const score = ref(0);
 const startTime = getCurrentTimeInSeconds();
@@ -75,6 +113,18 @@ const loading = ref(false);
 const error = ref(false);
 const errorText = ref("");
 const rewardsDefault = ref(0);
+
+const progressBarWidth = computed(() => {
+  return (
+      ((initialQuestionCount.value - questions.value.length) /
+          initialQuestionCount.value) *
+      100
+  ).toString();
+});
+
+const progressBarValue = computed(() => {
+  return initialQuestionCount.value - questions.value.length;
+});
 
 /**
  * Initialize all fields
@@ -100,30 +150,25 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
   buttonsDisabled.value = true;
   const buttonName = buttonTarget.currentTarget.name;
   let roundResult = new RoundResultDTO(
-    currentQuestion.value.id,
-    currentQuestion.value,
-    chosenAnswer
+      currentQuestion.value!.id,
+      currentQuestion.value!,
+      chosenAnswer
   );
-  if (chosenAnswer === currentQuestion.value.rightAnswer) {
+  if (chosenAnswer === currentQuestion.value!.rightAnswer) {
     correctAnsweredQuestions.value.push(roundResult);
-
     document.getElementsByName(buttonName)[0].style.backgroundColor = "green";
   } else {
     wrongAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "red";
   }
   score.value =
-    correctAnsweredQuestions.value.length / initialQuestionCount.value;
+      correctAnsweredQuestions.value.length / initialQuestionCount.value;
 
   document.getElementsByName("progress-bar")[0].style.width =
-    (
-      ((initialQuestionCount.value - questions.value.length) /
-        initialQuestionCount.value) *
-      100
-    ).toString() + "%";
+      progressBarWidth.value + "%";
   delay(1000)
-    .then(() => resetCurrentAnswers())
-    .then(() => nextQuestion());
+      .then(() => resetCurrentAnswers())
+      .then(() => nextQuestion());
 }
 
 /**
@@ -157,34 +202,34 @@ function nextQuestion() {
     currentAnswers.value = currentQuestion.value.wrongAnswers;
     currentAnswers.value.push(currentQuestion.value.rightAnswer);
     currentAnswers.value = currentAnswers.value
-      .map((value) => ({ value, sort: Math.random() }))
-      .sort((a, b) => a.sort - b.sort)
-      .map(({ value }) => value);
+        .map((value) => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value);
   } else {
     const timeSpent = Math.ceil(getCurrentTimeInSeconds() - startTime);
     let result = new GameResultDTO(
-      configurationId.value,
-      correctAnsweredQuestions.value,
-      wrongAnsweredQuestions.value,
-      score.value,
-      initialQuestionCount.value,
-      timeSpent,
-      rewardsDefault.value
+        configurationId.value,
+        correctAnsweredQuestions.value,
+        wrongAnsweredQuestions.value,
+        score.value,
+        initialQuestionCount.value,
+        timeSpent,
+        rewardsDefault.value
     );
     resetValues();
     loading.value = true;
     postGameResult(result)
-      .then(() => {
-        loading.value = false;
-        showEndscreen.value = true;
-      })
-      .catch((reason) => {
-        loading.value = false;
-        showEndscreen.value = true;
-        error.value = true;
-        errorText.value = reason.message;
-        toast.error(reason.message);
-      });
+        .then(() => {
+          loading.value = false;
+          showEndscreen.value = true;
+        })
+        .catch((reason) => {
+          loading.value = false;
+          showEndscreen.value = true;
+          error.value = true;
+          errorText.value = reason.message;
+          toast.error(reason.message);
+        });
   }
 }
 
@@ -192,9 +237,9 @@ function nextQuestion() {
  * Reset fields
  */
 function resetValues() {
-  questions.value = Array<Question>();
+  questions.value = [];
   currentQuestion.value = null;
-  currentAnswers.value = Array<Question>();
+  currentAnswers.value = [];
 }
 
 loadQuestions();
@@ -210,18 +255,13 @@ loadQuestions();
   font-size: 2vh;
 }
 
-.gold-image {
-  width: 70px;
-  height: auto;
-}
-
 #question-wrapper {
   float: left;
   margin-left: 2vw;
   margin-top: 2vw;
   height: 25vh;
   width: 47vw;
-  border: black solid 1px;
+  border: 1px solid black;
 }
 
 #question {
@@ -260,21 +300,19 @@ loadQuestions();
 
 #end-text-wrapper {
   height: 90vh;
-  width: 99vw;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .end-text {
-  height: 90vh;
-  width: 99vw;
   text-align: center;
-  vertical-align: middle;
-  display: table-cell;
   font-size: 6vh;
 }
 
 .loader {
-  margin-left: 49vw;
-  margin-top: 45vh;
+  margin: auto; 
   border: 16px solid #f3f3f3;
   border-top: 16px solid #3498db;
   border-radius: 50%;
@@ -283,18 +321,50 @@ loadQuestions();
   animation: spin 2s linear infinite;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 .gold-text {
   color: gold;
   font-weight: bold;
 }
 
+.results {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.results h2 {
+  font-size: 4vh;
+}
+
+.results-table {
+  margin: 20px 0;
+  width: 90%;
+  max-width: 800px;
+  border-collapse: collapse;
+}
+
+.results-table th,
+.results-table td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  text-align: left;
+  font-size: 1.6vh;
+}
+
+.results-table th {
+  background-color: #f2f2f2;
+  font-size: 1.8vh;
+}
+
+.results-table .result-icon {
+  font-size: 1.4vh;
+  line-height: 1.2;
+}
+
+.results-table .result-icon.green {
+  color: green;
+}
+
+.results-table .result-icon.red {
+  color: red;
+}
 </style>
