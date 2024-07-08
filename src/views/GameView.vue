@@ -25,32 +25,36 @@
           {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
         </h1>
       </div>
-      <b-button
-          v-for="answer in currentAnswers"
-          :key="answer"
-          class="answer"
-          variant="outline-info"
-          :name="'buttonId' + answer"
-          :disabled="buttonsDisabled"
-          @click="chooseAnswer($event, answer)"
-      >
-        {{ answer }}
-      </b-button>
+      <div id="answers-list">
+        <b-button
+            v-for="answer in currentAnswers"
+            :key="answer"
+            class="answer"
+            variant="outline-info"
+            :name="'buttonId' + answer"
+            :disabled="buttonsDisabled"
+            @click="chooseAnswer($event, answer)"
+            @mouseover="showAnswer = answer"
+            @mouseleave="showAnswer = null"
+        >
+          {{ answer }}
+        </b-button>
+      </div>
     </div>
 
     <div v-if="loading" class="loader"></div>
 
     <div id="end-text-wrapper" v-if="showEndscreen">
       <div v-if="!error" class="end-text">
-        <h1>Quiz Finished!</h1>
+
         <p>
-          You answered {{ correctAnsweredQuestions.length }} of
-          {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
+          You answered <span class="green-bold">{{ correctAnsweredQuestions.length }}</span> of
+          <span class="green-bold">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
           questions correctly.
         </p>
         <p>
           You've earned
-          <span class="gold-text">{{ store.state.rewards }}</span> coins!
+          <span class="gold-text">{{ store.state.rewards }} coins!</span>
         </p>
         <p v-if="store.state.rewards <= 4">Don't give up! You will get there!</p>
         <p v-else-if="store.state.rewards <= 7">Good job!</p>
@@ -72,7 +76,7 @@
             <tr v-for="(result, index) in correctAnsweredQuestions" :key="'correct' + index">
               <td>{{ result.question.text }}</td>
               <td>{{ result.question.rightAnswer }}</td>
-              <td><span class="result-icon green">&#10004;</span></td>
+              <td><span class="result-icon yellow">&#10004;</span></td>
             </tr>
             <tr v-for="(result, index) in wrongAnsweredQuestions" :key="'wrong' + index">
               <td>{{ result.question.text }}</td>
@@ -113,6 +117,7 @@ const loading = ref(false);
 const error = ref(false);
 const errorText = ref("");
 const rewardsDefault = ref(0);
+const showAnswer = ref<string | null>(null);
 
 const progressBarWidth = computed(() => {
   return (
@@ -246,6 +251,12 @@ loadQuestions();
 </script>
 
 <style scoped>
+
+.end-text p:first-of-type,
+.end-text p:nth-of-type(2) {
+  margin-top: 2cm;
+}
+
 .answer {
   margin-left: 2vw;
   margin-top: 1vw;
@@ -304,21 +315,24 @@ loadQuestions();
   display: flex;
   justify-content: center;
   align-items: center;
-  background-image: url('@/assets/zelda.jpg');
+  background-image: url('@/assets/wald.jpg');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
+  opacity: 1.6;
 }
+
 .end-text {
   text-align: center;
   font-size: 6vh;
+  color: white;
 }
 
 .loader {
   margin: auto;
   border: 16px solid #f3f3f3;
   border-top: 16px solid #3498db;
-  border-radius: 50%;
+  border-radius: 20px;
   width: 2vw;
   height: 2vw;
   animation: spin 2s linear infinite;
@@ -329,16 +343,10 @@ loadQuestions();
   font-weight: bold;
 }
 
-.end-text {
-  text-align: center;
-  font-size: 6vh;
-  color: white; /* Textfarbe auf weiß setzen */
-}
-
 .results {
   margin-top: 20px;
   text-align: center;
-  color: white; /* Textfarbe auf weiß setzen */
+  color: white;
 }
 
 .results h2 {
@@ -346,38 +354,56 @@ loadQuestions();
 }
 
 .results-table {
-  margin: 20px 0;
-  width: 90%;
-  max-width: 800px;
+  margin: 0 auto;
+  width: 80%;
   border-collapse: collapse;
-  color: white; /* Textfarbe auf weiß setzen */
+  background-color: #006400;
+  color: white;
 }
 
 .results-table th,
 .results-table td {
-  border: 1px solid #ddd;
-  padding: 6px;
-  text-align: left;
+  border: 1px solid white;
+  padding: 12px;
   font-size: 1.6vh;
-  color: white; /* Textfarbe auf weiß setzen */
+  background-color: #006400;
+  color: white;
+  text-align: center;
 }
 
-.results-table th {
-  background-color: #f2f2f2; /* Hintergrundfarbe der Überschriften */
-  font-size: 1.8vh;
-  color: black; /* Textfarbe der Überschriften auf schwarz setzen */
-}
-
-.results-table .result-icon {
+.results-table .result-icon.yellow {
+  color: lightgoldenrodyellow;
   font-size: 1.4vh;
-  line-height: 1.2;
-}
-
-.results-table .result-icon.green {
-  color: green;
+  line-height: 1.8;
 }
 
 .results-table .result-icon.red {
   color: red;
+  font-size: 1.8vh;
+  line-height: 1.8;
+}
+
+.green-bold {
+  color: #6a2900;
+  font-weight: bold;
+}
+
+#answers-list {
+  position: relative;
+}
+
+.answer-info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.answer:hover .answer-info {
+  display: block;
 }
 </style>
