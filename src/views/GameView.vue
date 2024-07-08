@@ -304,15 +304,18 @@ loadQuestions();
   display: flex;
   justify-content: center;
   align-items: center;
+  background-image: url('@/assets/zelda.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
 }
-
 .end-text {
   text-align: center;
   font-size: 6vh;
 }
 
 .loader {
-  margin: auto; 
+  margin: auto;
   border: 16px solid #f3f3f3;
   border-top: 16px solid #3498db;
   border-radius: 50%;
@@ -326,9 +329,16 @@ loadQuestions();
   font-weight: bold;
 }
 
+.end-text {
+  text-align: center;
+  font-size: 6vh;
+  color: white; /* Textfarbe auf weiß setzen */
+}
+
 .results {
   margin-top: 20px;
   text-align: center;
+  color: white; /* Textfarbe auf weiß setzen */
 }
 
 .results h2 {
@@ -340,6 +350,7 @@ loadQuestions();
   width: 90%;
   max-width: 800px;
   border-collapse: collapse;
+  color: white; /* Textfarbe auf weiß setzen */
 }
 
 .results-table th,
@@ -348,11 +359,13 @@ loadQuestions();
   padding: 6px;
   text-align: left;
   font-size: 1.6vh;
+  color: white; /* Textfarbe auf weiß setzen */
 }
 
 .results-table th {
-  background-color: #f2f2f2;
+  background-color: #f2f2f2; /* Hintergrundfarbe der Überschriften */
   font-size: 1.8vh;
+  color: black; /* Textfarbe der Überschriften auf schwarz setzen */
 }
 
 .results-table .result-icon {
