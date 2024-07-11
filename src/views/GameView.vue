@@ -46,7 +46,6 @@
 
     <div id="end-text-wrapper" v-if="showEndscreen">
       <div v-if="!error" class="end-text">
-
         <p>
           You answered <span class="green-bold">{{ correctAnsweredQuestions.length }}</span> of
           <span class="green-bold">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
@@ -68,19 +67,25 @@
             <thead>
             <tr>
               <th>Question</th>
-              <th>Correct Answer</th>
+              <th>Your Answer</th>
               <th>Result</th>
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(result, index) in correctAnsweredQuestions" :key="'correct' + index">
+            <tr
+                v-for="(result, index) in correctAnsweredQuestions"
+                :key="'correct' + index"
+            >
               <td>{{ result.question.text }}</td>
-              <td>{{ result.question.rightAnswer }}</td>
+              <td>{{ result.answer}}</td>
               <td><span class="result-icon yellow">&#10004;</span></td>
             </tr>
-            <tr v-for="(result, index) in wrongAnsweredQuestions" :key="'wrong' + index">
+            <tr
+                v-for="(result, index) in wrongAnsweredQuestions"
+                :key="'wrong' + index"
+            >
               <td>{{ result.question.text }}</td>
-              <td>{{ result.question.rightAnswer }}</td>
+              <td>{{ result.answer }}</td>
               <td><span class="result-icon red">&#10008;</span></td>
             </tr>
             </tbody>
@@ -251,7 +256,7 @@ loadQuestions();
 </script>
 
 <style scoped>
-
+/* Your existing styles */
 .end-text p:first-of-type,
 .end-text p:nth-of-type(2) {
   margin-top: 2cm;
