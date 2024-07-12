@@ -23,7 +23,8 @@ export async function postGameResult(
     const response = await axios.post(`${config.apiBaseUrl}/results`, gameResultDTO);
     console.log("Received response from backend:", response.data); // Log the response from backend
     const returnedResult = fromDTO(response.data);
-    store.commit('setRewards', returnedResult.rewards)
+    store.commit('setScore', returnedResult.score);
+    store.commit('setRewards', returnedResult.rewards);
 
   } catch (error) {
     console.error("Error sending GameResultDTO:", error); // Log any error

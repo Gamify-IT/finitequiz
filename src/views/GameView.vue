@@ -21,8 +21,8 @@
       </div>
       <div id="feedback">
         <h1>
-          Current score: {{ correctAnsweredQuestions.length }} /
-          {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
+          Current score: <span class="outlined-text">{{ correctAnsweredQuestions.length }}</span> /
+          <span class="outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
         </h1>
       </div>
       <div id="answers-list">
@@ -47,13 +47,13 @@
     <div id="end-text-wrapper" v-if="showEndscreen">
       <div v-if="!error" class="end-text">
         <p>
-          You answered <span class="green-bold">{{ correctAnsweredQuestions.length }}</span> of
-          <span class="green-bold">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
+          You answered <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length }}</span> of
+          <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
           questions correctly.
         </p>
         <p>
-          You've earned
-          <span class="gold-text">{{ store.state.rewards }} coins!</span>
+          You've earned <span class="gold-text outlined-text">{{ store.state.score }} scores</span> and
+          <span class="gold-text outlined-text">{{ store.state.rewards }} coins!</span>
         </p>
         <p v-if="store.state.rewards <= 4">Don't give up! You will get there!</p>
         <p v-else-if="store.state.rewards <= 7">Good job!</p>
@@ -62,8 +62,8 @@
         <div class="results">
           <h2>Results Summary:</h2>
         </div>
-        <div class="results-table">
-          <table>
+        <div class="results-table-container">
+          <table class="results-table">
             <thead>
             <tr>
               <th>Question</th>
@@ -72,18 +72,13 @@
             </tr>
             </thead>
             <tbody>
-            <tr
-                v-for="(result, index) in correctAnsweredQuestions"
-                :key="'correct' + index"
-            >
+            <!-- Display only a fixed number of rows -->
+            <tr v-for="(result, index) in displayedCorrectResults" :key="'correct' + index">
               <td>{{ result.question.text }}</td>
-              <td>{{ result.answer}}</td>
+              <td>{{ result.answer }}</td>
               <td><span class="result-icon yellow">&#10004;</span></td>
             </tr>
-            <tr
-                v-for="(result, index) in wrongAnsweredQuestions"
-                :key="'wrong' + index"
-            >
+            <tr v-for="(result, index) in displayedWrongResults" :key="'wrong' + index">
               <td>{{ result.question.text }}</td>
               <td>{{ result.answer }}</td>
               <td><span class="result-icon red">&#10008;</span></td>
@@ -123,7 +118,9 @@ const error = ref(false);
 const errorText = ref("");
 const rewardsDefault = ref(0);
 const showAnswer = ref<string | null>(null);
-
+const maxRowsToShow = 8;
+const displayedCorrectResults = computed(() => correctAnsweredQuestions.value.slice(0, maxRowsToShow));
+const displayedWrongResults = computed(() => wrongAnsweredQuestions.value.slice(0, maxRowsToShow));
 const progressBarWidth = computed(() => {
   return (
       ((initialQuestionCount.value - questions.value.length) /
@@ -315,7 +312,7 @@ loadQuestions();
 }
 
 #end-text-wrapper {
-  height: 90vh;
+  height: 100vh;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -324,6 +321,7 @@ loadQuestions();
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
+  background-attachment: fixed;
   opacity: 1.6;
 }
 
@@ -348,6 +346,14 @@ loadQuestions();
   font-weight: bold;
 }
 
+.results-table-container {
+  margin: 0 auto;
+  width: 80%;
+  max-height: 50vh; /* Adjust as needed */
+  overflow-y: auto; /* Enable vertical scrollbar */
+  border: 1px solid white; /* Optional: add a border */
+}
+
 .results {
   margin-top: 20px;
   text-align: center;
@@ -359,11 +365,11 @@ loadQuestions();
 }
 
 .results-table {
-  margin: 0 auto;
-  width: 80%;
+  width: 100%;
   border-collapse: collapse;
   background-color: #006400;
   color: white;
+  opacity: 0.75;
 }
 
 .results-table th,
@@ -411,4 +417,13 @@ loadQuestions();
 .answer:hover .answer-info {
   display: block;
 }
+
+.outlined-text {
+  text-shadow:
+      -1px -1px 0 #fff,
+      1px -1px 0 #fff,
+      -1px 1px 0 #fff,
+      1px 1px 0 #fff;
+}
+
 </style>
