@@ -351,7 +351,7 @@ loadQuestions();
   width: 80%;
   max-height: 50vh;
   overflow-y: auto;
-  border: 1px solid white; 
+  border: 1px solid white;
 }
 
 .results {
