@@ -349,9 +349,9 @@ loadQuestions();
 .results-table-container {
   margin: 0 auto;
   width: 80%;
-  max-height: 50vh; /* Adjust as needed */
-  overflow-y: auto; /* Enable vertical scrollbar */
-  border: 1px solid white; /* Optional: add a border */
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid white; 
 }
 
 .results {
