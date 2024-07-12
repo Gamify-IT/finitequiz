@@ -72,11 +72,10 @@
             </tr>
             </thead>
             <tbody>
-            <!-- Display only a fixed number of rows -->
             <tr v-for="(result, index) in displayedCorrectResults" :key="'correct' + index">
               <td>{{ result.question.text }}</td>
               <td>{{ result.answer }}</td>
-              <td><span class="result-icon yellow">&#10004;</span></td>
+              <td><span class="result-icon yellow">&#10003;</span></td>
             </tr>
             <tr v-for="(result, index) in displayedWrongResults" :key="'wrong' + index">
               <td>{{ result.question.text }}</td>
@@ -118,7 +117,7 @@ const error = ref(false);
 const errorText = ref("");
 const rewardsDefault = ref(0);
 const showAnswer = ref<string | null>(null);
-const maxRowsToShow = 8;
+const maxRowsToShow = 7;
 const displayedCorrectResults = computed(() => correctAnsweredQuestions.value.slice(0, maxRowsToShow));
 const displayedWrongResults = computed(() => wrongAnsweredQuestions.value.slice(0, maxRowsToShow));
 const progressBarWidth = computed(() => {
@@ -132,6 +131,7 @@ const progressBarWidth = computed(() => {
 const progressBarValue = computed(() => {
   return initialQuestionCount.value - questions.value.length;
 });
+
 
 /**
  * Initialize all fields
@@ -382,17 +382,28 @@ loadQuestions();
   text-align: center;
 }
 
+.results-table-container {
+  margin: 0 auto;
+  width: 80%;
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid white;
+}
+
 .results-table .result-icon.yellow {
-  color: lightgoldenrodyellow;
-  font-size: 1.4vh;
+  color: yellow;
+  font-size: 1.8vh;
+  font-weight: bold;
   line-height: 1.8;
 }
 
 .results-table .result-icon.red {
   color: red;
-  font-size: 1.8vh;
+  font-size: 2vh;
+  font-weight: bold;
   line-height: 1.8;
 }
+
 
 .green-bold {
   color: #6a2900;
@@ -425,5 +436,8 @@ loadQuestions();
       -1px 1px 0 #fff,
       1px 1px 0 #fff;
 }
+
+
+
 
 </style>
