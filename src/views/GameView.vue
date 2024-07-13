@@ -99,6 +99,9 @@ import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 import { useToast } from "vue-toastification";
 import store from "@/store/index";
 import { computed, ref } from "vue";
+import triumphSound from '/src/assets/trumpets.mp3';
+import negativeSound from '/src/assets/negativeSound.mp3';
+
 
 const configurationId = ref("");
 const questions = ref<Array<Question>>([]);
@@ -229,6 +232,11 @@ function nextQuestion() {
         .then(() => {
           loading.value = false;
           showEndscreen.value = true;
+          if(store.state.score <= 40){
+            playSound(negativeSound, 1000);
+          }else{
+            playSound(triumphSound, 2000);
+          }
         })
         .catch((reason) => {
           loading.value = false;
@@ -247,6 +255,12 @@ function resetValues() {
   questions.value = [];
   currentQuestion.value = null;
   currentAnswers.value = [];
+}
+
+function playSound(pathToAudioFile: string, duration: number){
+  const sound = new Audio(pathToAudioFile);
+  sound.play();
+  setTimeout(() => sound.pause(), duration);
 }
 
 loadQuestions();
