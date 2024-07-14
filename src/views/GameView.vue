@@ -55,8 +55,8 @@
           You've earned <span class="gold-text outlined-text">{{ store.state.score }} scores</span> and
           <span class="gold-text outlined-text">{{ store.state.rewards }} coins!</span>
         </p>
-        <p v-if="store.state.rewards <= 4">Don't give up! You will get there!</p>
-        <p v-else-if="store.state.rewards <= 7">Good job!</p>
+        <p v-if="store.state.score <= 50">Don't give up! You will get there!</p>
+        <p v-else-if="store.state.score <= 70">Good job!</p>
         <p v-else>Wow! Congratulations!</p>
 
         <div class="results">
@@ -232,7 +232,7 @@ function nextQuestion() {
         .then(() => {
           loading.value = false;
           showEndscreen.value = true;
-          if(store.state.score <= 40){
+          if(store.state.score <= 50){
             playSound(negativeSound, 1000);
           }else{
             playSound(triumphSound, 2000);
