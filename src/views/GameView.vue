@@ -99,7 +99,9 @@ import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 import { useToast } from "vue-toastification";
 import store from "@/store/index";
 import { computed, ref } from "vue";
-
+import correctAnswerSoundSource from '/src/assets/music/correct_answer_sound.wav';
+import wrongAnswerSoundSource from '/src/assets/music/wrong_answer_sound.mp3';
+import finishSoundSource from '/src/assets/music/finish_sound.wav';
 
 const configurationId = ref("");
 const questions = ref<Array<Question>>([]);
@@ -165,9 +167,11 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
   if (chosenAnswer === currentQuestion.value!.rightAnswer) {
     correctAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "green";
+    playSound(correctAnswerSoundSource);
   } else {
     wrongAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "red";
+    playSound(wrongAnswerSoundSource);
   }
   score.value =
       correctAnsweredQuestions.value.length / initialQuestionCount.value;
@@ -227,17 +231,18 @@ function nextQuestion() {
     resetValues();
     loading.value = true;
     postGameResult(result)
-        .then(() => {
-          loading.value = false;
-          showEndscreen.value = true;
-        })
-        .catch((reason) => {
-          loading.value = false;
-          showEndscreen.value = true;
-          error.value = true;
-          errorText.value = reason.message;
-          toast.error(reason.message);
-        });
+      .then(() => {
+        loading.value = false;
+        showEndscreen.value = true;
+        playSound(finishSoundSource);
+      })
+      .catch((reason) => {
+        loading.value = false;
+        showEndscreen.value = true;
+        error.value = true;
+        errorText.value = reason.response.data.message;
+        toast.error(reason.response.data.message);
+      });
   }
 }
 
@@ -254,6 +259,11 @@ function playSound(pathToAudioFile: string, duration: number){
   const sound = new Audio(pathToAudioFile);
   sound.play();
   setTimeout(() => sound.pause(), duration);
+}
+
+function playSound(pathToAudioFile: string){
+  const sound = new Audio(pathToAudioFile);
+  sound.play();
 }
 
 loadQuestions();
