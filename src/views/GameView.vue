@@ -1,16 +1,18 @@
 <template>
   <div>
+    <!-- Progress bar -->
     <div class="progress">
       <div
-        name="progress-bar"
-        class="progress-bar"
-        role="progressbar"
-        style="width: 0%"
-        aria-valuenow="{{initialQuestionCount-questions.length}}"
-        aria-valuemin="0"
-        aria-valuemax="{{initialQuestionCount}}"
+          name="progress-bar"
+          class="progress-bar"
+          role="progressbar"
+          :style="{ width: progressBarWidth + '%' }"
+          :aria-valuenow="progressBarValue"
+          aria-valuemin="0"
+          :aria-valuemax="initialQuestionCount"
       ></div>
     </div>
+
     <div v-if="currentQuestion">
       <div id="question-wrapper">
         <div id="question">
@@ -19,28 +21,70 @@
       </div>
       <div id="feedback">
         <h1>
-          Current score: {{ correctAnsweredQuestions.length }} /
-          {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
+          Current score: <span class="outlined-text">{{ correctAnsweredQuestions.length }}</span> /
+          <span class="outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
         </h1>
       </div>
-      <b-button
-        v-for="answer in currentAnswers"
-        :key="answer"
-        class="answer"
-        variant="outline-info"
-        :name="'buttonId' + answer"
-        :disabled="buttonsDisabled"
-        v-on:click="chooseAnswer($event, answer)"
-      >
-        {{ answer }}
-      </b-button>
+      <div id="answers-list">
+        <b-button
+            v-for="answer in currentAnswers"
+            :key="answer"
+            class="answer"
+            variant="outline-info"
+            :name="'buttonId' + answer"
+            :disabled="buttonsDisabled"
+            @click="chooseAnswer($event, answer)"
+            @mouseover="showAnswer = answer"
+            @mouseleave="showAnswer = null"
+        >
+          {{ answer }}
+        </b-button>
+      </div>
     </div>
+
     <div v-if="loading" class="loader"></div>
+
     <div id="end-text-wrapper" v-if="showEndscreen">
       <div v-if="!error" class="end-text">
-        Finished! Answered {{ correctAnsweredQuestions.length }} of
-        {{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}
-        questions right!
+        <p>
+          You answered <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length }}</span> of
+          <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
+          questions correctly.
+        </p>
+        <p>
+          You've earned <span class="gold-text outlined-text">{{ store.state.score }} scores</span> and
+          <span class="gold-text outlined-text">{{ store.state.rewards }} coins!</span>
+        </p>
+        <p v-if="store.state.score <= 50">Don't give up! You will get there!</p>
+        <p v-else-if="store.state.score <= 70">Good job!</p>
+        <p v-else>Wow! Congratulations!</p>
+
+        <div class="results">
+          <h2>Results Summary:</h2>
+        </div>
+        <div class="results-table-container">
+          <table class="results-table">
+            <thead>
+            <tr>
+              <th>Question</th>
+              <th>Your Answer</th>
+              <th>Result</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(result, index) in displayedCorrectResults" :key="'correct' + index">
+              <td>{{ result.question.text }}</td>
+              <td>{{ result.answer }}</td>
+              <td><span class="result-icon yellow">&#10003;</span></td>
+            </tr>
+            <tr v-for="(result, index) in displayedWrongResults" :key="'wrong' + index">
+              <td>{{ result.question.text }}</td>
+              <td>{{ result.answer }}</td>
+              <td><span class="result-icon red">&#10008;</span></td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
       <div v-if="error" class="end-text">
         {{ errorText }}
@@ -51,20 +95,21 @@
 
 <script setup lang="ts">
 import { getQuestions, postGameResult } from "@/ts/minigame-rest-client";
-import { ref } from "vue";
 import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 import { useToast } from "vue-toastification";
+import store from "@/store/index";
+import { computed, ref } from "vue";
 import correctAnswerSoundSource from '/src/assets/music/correct_answer_sound.wav';
 import wrongAnswerSoundSource from '/src/assets/music/wrong_answer_sound.mp3';
 import finishSoundSource from '/src/assets/music/finish_sound.wav';
 
 const configurationId = ref("");
-const questions = ref(Array<Question>());
+const questions = ref<Array<Question>>([]);
 const initialQuestionCount = ref(0);
-const currentQuestion = ref();
-const currentAnswers = ref(Array<Question>());
-const correctAnsweredQuestions = ref(Array<RoundResultDTO>());
-const wrongAnsweredQuestions = ref(Array<RoundResultDTO>());
+const currentQuestion = ref<Question | null>(null);
+const currentAnswers = ref<Array<string>>([]);
+const correctAnsweredQuestions = ref<Array<RoundResultDTO>>([]);
+const wrongAnsweredQuestions = ref<Array<RoundResultDTO>>([]);
 const showEndscreen = ref(false);
 const score = ref(0);
 const startTime = getCurrentTimeInSeconds();
@@ -73,6 +118,23 @@ const toast = useToast();
 const loading = ref(false);
 const error = ref(false);
 const errorText = ref("");
+const rewardsDefault = ref(0);
+const showAnswer = ref<string | null>(null);
+const maxRowsToShow = 7;
+const displayedCorrectResults = computed(() => correctAnsweredQuestions.value.slice(0, maxRowsToShow));
+const displayedWrongResults = computed(() => wrongAnsweredQuestions.value.slice(0, maxRowsToShow));
+const progressBarWidth = computed(() => {
+  return (
+      ((initialQuestionCount.value - questions.value.length) /
+          initialQuestionCount.value) *
+      100
+  ).toString();
+});
+
+const progressBarValue = computed(() => {
+  return initialQuestionCount.value - questions.value.length;
+});
+
 
 /**
  * Initialize all fields
@@ -98,11 +160,11 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
   buttonsDisabled.value = true;
   const buttonName = buttonTarget.currentTarget.name;
   let roundResult = new RoundResultDTO(
-    currentQuestion.value.id,
-    currentQuestion.value,
-    chosenAnswer
+      currentQuestion.value!.id,
+      currentQuestion.value!,
+      chosenAnswer
   );
-  if (chosenAnswer === currentQuestion.value.rightAnswer) {
+  if (chosenAnswer === currentQuestion.value!.rightAnswer) {
     correctAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "green";
     playSound(correctAnswerSoundSource);
@@ -112,16 +174,13 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
     playSound(wrongAnswerSoundSource);
   }
   score.value =
-    correctAnsweredQuestions.value.length / initialQuestionCount.value;
+      correctAnsweredQuestions.value.length / initialQuestionCount.value;
+
   document.getElementsByName("progress-bar")[0].style.width =
-    (
-      ((initialQuestionCount.value - questions.value.length) /
-        initialQuestionCount.value) *
-      100
-    ).toString() + "%";
+      progressBarWidth.value + "%";
   delay(1000)
-    .then(() => resetCurrentAnswers())
-    .then(() => nextQuestion());
+      .then(() => resetCurrentAnswers())
+      .then(() => nextQuestion());
 }
 
 /**
@@ -155,18 +214,19 @@ function nextQuestion() {
     currentAnswers.value = currentQuestion.value.wrongAnswers;
     currentAnswers.value.push(currentQuestion.value.rightAnswer);
     currentAnswers.value = currentAnswers.value
-      .map((value) => ({ value, sort: Math.random() }))
-      .sort((a, b) => a.sort - b.sort)
-      .map(({ value }) => value);
+        .map((value) => ({ value, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ value }) => value);
   } else {
     const timeSpent = Math.ceil(getCurrentTimeInSeconds() - startTime);
     let result = new GameResultDTO(
-      configurationId.value,
-      correctAnsweredQuestions.value,
-      wrongAnsweredQuestions.value,
-      score.value,
-      initialQuestionCount.value,
-      timeSpent
+        configurationId.value,
+        correctAnsweredQuestions.value,
+        wrongAnsweredQuestions.value,
+        score.value,
+        initialQuestionCount.value,
+        timeSpent,
+        rewardsDefault.value
     );
     resetValues();
     loading.value = true;
@@ -190,9 +250,15 @@ function nextQuestion() {
  * Reset fields
  */
 function resetValues() {
-  questions.value = Array<Question>();
+  questions.value = [];
   currentQuestion.value = null;
-  currentAnswers.value = Array<Question>();
+  currentAnswers.value = [];
+}
+
+function playSound(pathToAudioFile: string, duration: number){
+  const sound = new Audio(pathToAudioFile);
+  sound.play();
+  setTimeout(() => sound.pause(), duration);
 }
 
 function playSound(pathToAudioFile: string){
@@ -204,6 +270,12 @@ loadQuestions();
 </script>
 
 <style scoped>
+/* Your existing styles */
+.end-text p:first-of-type,
+.end-text p:nth-of-type(2) {
+  margin-top: 2cm;
+}
+
 .answer {
   margin-left: 2vw;
   margin-top: 1vw;
@@ -219,7 +291,7 @@ loadQuestions();
   margin-top: 2vw;
   height: 25vh;
   width: 47vw;
-  border: black solid 1px;
+  border: 1px solid black;
 }
 
 #question {
@@ -257,36 +329,132 @@ loadQuestions();
 }
 
 #end-text-wrapper {
-  height: 90vh;
-  width: 99vw;
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url('@/assets/wald.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+  opacity: 1.6;
 }
 
 .end-text {
-  height: 90vh;
-  width: 99vw;
   text-align: center;
-  vertical-align: middle;
-  display: table-cell;
   font-size: 6vh;
+  color: white;
 }
 
 .loader {
-  margin-left: 49vw;
-  margin-top: 45vh;
+  margin: auto;
   border: 16px solid #f3f3f3;
   border-top: 16px solid #3498db;
-  border-radius: 50%;
+  border-radius: 20px;
   width: 2vw;
   height: 2vw;
   animation: spin 2s linear infinite;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.gold-text {
+  color: gold;
+  font-weight: bold;
 }
+
+.results-table-container {
+  margin: 0 auto;
+  width: 80%;
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid white;
+}
+
+.results {
+  margin-top: 20px;
+  text-align: center;
+  color: white;
+}
+
+.results h2 {
+  font-size: 4vh;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #006400;
+  color: white;
+  opacity: 0.75;
+}
+
+.results-table th,
+.results-table td {
+  border: 1px solid white;
+  padding: 12px;
+  font-size: 1.6vh;
+  background-color: #006400;
+  color: white;
+  text-align: center;
+}
+
+.results-table-container {
+  margin: 0 auto;
+  width: 80%;
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid white;
+}
+
+.results-table .result-icon.yellow {
+  color: yellow;
+  font-size: 1.8vh;
+  font-weight: bold;
+  line-height: 1.8;
+}
+
+.results-table .result-icon.red {
+  color: red;
+  font-size: 2vh;
+  font-weight: bold;
+  line-height: 1.8;
+}
+
+
+.green-bold {
+  color: #6a2900;
+  font-weight: bold;
+}
+
+#answers-list {
+  position: relative;
+}
+
+.answer-info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.answer:hover .answer-info {
+  display: block;
+}
+
+.outlined-text {
+  text-shadow:
+      -1px -1px 0 #fff,
+      1px -1px 0 #fff,
+      -1px 1px 0 #fff,
+      1px 1px 0 #fff;
+}
+
+
+
+
 </style>

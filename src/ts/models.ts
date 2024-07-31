@@ -51,6 +51,9 @@ export class GameResultDTO {
     public wrongAnsweredQuestions: Array<RoundResultDTO>,
     public score: number,
     public questionCount: number,
-    public timeSpent: number
+    public timeSpent: number,
+    public rewards: number
   ) {}
 }
+
+
