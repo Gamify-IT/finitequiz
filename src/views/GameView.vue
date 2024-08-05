@@ -99,9 +99,9 @@ import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 import { useToast } from "vue-toastification";
 import store from "@/store/index";
 import { computed, ref } from "vue";
-import correctAnswerSoundSource from '/src/assets/music/correct_answer_sound.wav';
-import wrongAnswerSoundSource from '/src/assets/music/wrong_answer_sound.mp3';
-import finishSoundSource from '/src/assets/music/finish_sound.wav';
+import correctAnswerSoundSource from "@/assets/music/correct_answer_sound.wav";
+import wrongAnswerSoundSource from "@/assets/music/wrong_answer_sound.mp3";
+import finishSoundSource from "@/assets/music/finish_sound.wav";
 
 const configurationId = ref("");
 const questions = ref<Array<Question>>([]);
@@ -253,12 +253,6 @@ function resetValues() {
   questions.value = [];
   currentQuestion.value = null;
   currentAnswers.value = [];
-}
-
-function playSound(pathToAudioFile: string, duration: number){
-  const sound = new Audio(pathToAudioFile);
-  sound.play();
-  setTimeout(() => sound.pause(), duration);
 }
 
 function playSound(pathToAudioFile: string){

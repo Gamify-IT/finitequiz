@@ -27,8 +27,8 @@
 <script setup lang="ts">
 import GameView from "@/views/GameView";
 import { onMounted, onUnmounted } from "vue";
-import backgroundMusicSource from '/src/assets/music/background_music.mp3';
-import clickSoundSource from '/src/assets/music/click_sound.mp3';
+import backgroundMusicSource from '@/assets/music/background_music.mp3';
+import clickSoundSource from '@/assets/music/click_sound.mp3';
 
 const backgroundMusic = new Audio(backgroundMusicSource);
 const clickSound = new Audio(clickSoundSource);
