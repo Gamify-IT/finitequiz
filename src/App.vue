@@ -102,7 +102,6 @@ async function fetchAndUpdateVolume() {
   try {
     const response = await getVolumeLevel(configurationId.value);
     volumeLevel = response.data.volumeLevel;
-    console.log("Volume level in finiteQuiz: " + volumeLevel);
 
     adjustVolume(volumeLevel);
 
@@ -123,9 +122,7 @@ onMounted(async () => {
 watch(() => configurationId.value, async (value) => {
   if (value) {
     await fetchAndUpdateVolume();
-  } else {
-    console.error('Invalid configuration parameter');
-  }
+  } 
 }, { immediate: true });
 
 onUnmounted(() => {

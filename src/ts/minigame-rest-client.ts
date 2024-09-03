@@ -17,12 +17,12 @@ export function getQuestions(configId: string): Promise<AxiosResponse> {
 
 export function getVolumeLevel(configId: string): Promise<AxiosResponse> {
   return axios.get(
-    `${config.apiBaseUrl}/configurations/` + configId
+    `${config.apiBaseUrl}/configurations/` + configId + '/volume'
   );
 }
 
 export async function postGameResult(
-  gameResultDTO: GameResultDTO
+  gameResultDTO: GameResultDTO 
 ): Promise<void> {
   console.log("Sending GameResultDTO to backend:", gameResultDTO); // Log the data being sent
   try {
