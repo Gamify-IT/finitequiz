@@ -52,10 +52,16 @@ function closeGame() {
   window.parent.postMessage("CLOSE ME");
 }
 
+/**
+ * Play click sound
+ */
 function playClickSound(){
   clickSound.play();
 }
 
+/**
+ * Play click sound and then close game
+ */
 async function handleCloseGame() {
   await playClickSound();
     setTimeout(() => {
@@ -63,6 +69,9 @@ async function handleCloseGame() {
     }, 500);
 }
 
+/**
+ * Play click sound and then reload game
+ */
 async function handleReloadPage() {
   await playClickSound();
     setTimeout(() => {
@@ -70,6 +79,9 @@ async function handleReloadPage() {
     }, 500);
 }
 
+/**
+ * Change volume level of audio
+ */
 function adjustVolume(volume: number | null) {
   if (volume === 2 || volume === 3) {
     volume = 1;
@@ -83,6 +95,9 @@ function adjustVolume(volume: number | null) {
   clickSound.volume = volume;
 }
 
+/**
+ * Get volume level 
+ */
 async function fetchAndUpdateVolume() {
   try {
     const response = await getVolumeLevel(configurationId.value);

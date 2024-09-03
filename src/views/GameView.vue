@@ -152,21 +152,21 @@ async function loadQuestions() {
   });
   getVolumeLevel(configurationId.value).then((response) => {
     volumeLevel = response.data.volumeLevel;
-    //console.log("Volume level in finiteQuiz "+volumeLevel);
   });
 }
 
- function createAudioWithVolume(pathToAudioFile: string): HTMLAudioElement {
-  //await loadQuestions();
+/**
+ * Create audio with volume level from overwrold
+ */
+function createAudioWithVolume(pathToAudioFile: string): HTMLAudioElement {
   const audio = new Audio(pathToAudioFile); 
   if (volumeLevel == 2 || volumeLevel == 3) {
-      volumeLevel = 1;
-    } else if (volumeLevel == 1) {
-      volumeLevel = 0.5;
-    }
-
-    audio.volume = volumeLevel !== null ? volumeLevel : 1;
-    return audio;
+    volumeLevel = 1;
+  } else if (volumeLevel == 1) {
+    volumeLevel = 0.5;
+  }
+  audio.volume = volumeLevel !== null ? volumeLevel : 1;
+  return audio;
 }
 
 /**
@@ -273,6 +273,9 @@ function resetValues() {
   currentAnswers.value = [];
 }
 
+/**
+ * Play sound with neccesary volume level
+ */
 async function playSound(pathToAudioFile: string){
   const sound = await createAudioWithVolume(pathToAudioFile);
   sound.play();
