@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { getQuestions, postGameResult } from "@/ts/minigame-rest-client";
+import { getQuestions, getVolumeLevel, postGameResult } from "@/ts/minigame-rest-client";
 import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 import { useToast } from "vue-toastification";
 import store from "@/store/index";
@@ -103,6 +103,7 @@ import correctAnswerSoundSource from "@/assets/music/correct_answer_sound.wav";
 import wrongAnswerSoundSource from "@/assets/music/wrong_answer_sound.mp3";
 import finishSoundSource from "@/assets/music/finish_sound.wav";
 
+let volumeLevel : number|null = 0;
 const configurationId = ref("");
 const questions = ref<Array<Question>>([]);
 const initialQuestionCount = ref(0);
@@ -149,6 +150,23 @@ async function loadQuestions() {
     error.value = false;
     nextQuestion();
   });
+  getVolumeLevel(configurationId.value).then((response) => {
+    volumeLevel = response.data.volumeLevel;
+    //console.log("Volume level in finiteQuiz "+volumeLevel);
+  });
+}
+
+ function createAudioWithVolume(pathToAudioFile: string): HTMLAudioElement {
+  //await loadQuestions();
+  const audio = new Audio(pathToAudioFile); 
+  if (volumeLevel == 2 || volumeLevel == 3) {
+      volumeLevel = 1;
+    } else if (volumeLevel == 1) {
+      volumeLevel = 0.5;
+    }
+
+    audio.volume = volumeLevel !== null ? volumeLevel : 1;
+    return audio;
 }
 
 /**
@@ -255,8 +273,8 @@ function resetValues() {
   currentAnswers.value = [];
 }
 
-function playSound(pathToAudioFile: string){
-  const sound = new Audio(pathToAudioFile);
+async function playSound(pathToAudioFile: string){
+  const sound = await createAudioWithVolume(pathToAudioFile);
   sound.play();
 }
 

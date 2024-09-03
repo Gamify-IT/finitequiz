@@ -15,6 +15,12 @@ export function getQuestions(configId: string): Promise<AxiosResponse> {
   );
 }
 
+export function getVolumeLevel(configId: string): Promise<AxiosResponse> {
+  return axios.get(
+    `${config.apiBaseUrl}/configurations/` + configId
+  );
+}
+
 export async function postGameResult(
   gameResultDTO: GameResultDTO
 ): Promise<void> {
