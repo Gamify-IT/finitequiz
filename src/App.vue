@@ -124,14 +124,12 @@ onMounted(async () => {
   await fetchAndUpdateVolume();
 });
 
-// Watch for changes to configurationId and update the volume settings
 watch(() => configurationId.value, async (value) => {
   if (value) {
     await fetchAndUpdateVolume();
   } 
 }, { immediate: true });
 
-// Cleanup when the component is unmounted
 onUnmounted(() => {
   backgroundMusic.pause();
   backgroundMusic.currentTime = 0;
