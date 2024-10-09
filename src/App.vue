@@ -1,11 +1,13 @@
 <template>
   <div>
+    <!-- Navigation bar containing the game title and buttons -->
     <nav
       class="navbar navbar-expand-lg navbar-light bg-dark"
       aria-label="Navigation Bar"
     >
       <a id="finite-game">Finite Quiz</a>
       <nav class="ms-auto" aria-label="Navigation Bar">
+        <!-- Restart button with click handler to reload the page -->
         <b-button
           class="nav-buttons"
           id="restart-button"
@@ -13,11 +15,13 @@
         >
           Restart
         </b-button>
+        <!-- Close button with click handler to close the game -->
         <b-button class="nav-buttons" id="close-button" v-on:click="handleCloseGame">
           Close
         </b-button>
       </nav>
     </nav>
+    <!-- Main game view -->
     <div>
       <GameView></GameView>
     </div>
@@ -81,6 +85,7 @@ async function handleReloadPage() {
 
 /**
  * Change volume level of audio
+ * @param volume
  */
 function adjustVolume(volume: number | null) {
   if (volume === 2 || volume === 3) {
@@ -119,12 +124,14 @@ onMounted(async () => {
   await fetchAndUpdateVolume();
 });
 
+// Watch for changes to configurationId and update the volume settings
 watch(() => configurationId.value, async (value) => {
   if (value) {
     await fetchAndUpdateVolume();
   } 
 }, { immediate: true });
 
+// Cleanup when the component is unmounted
 onUnmounted(() => {
   backgroundMusic.pause();
   backgroundMusic.currentTime = 0;
@@ -132,26 +139,28 @@ onUnmounted(() => {
 
 </script>
 <style scoped>
+/* Styling for the navigation bar */
 .navbar {
   padding-left: 1vw;
   height: 7vh;
 }
 
+/* Styling for the game title */
 #finite-game {
   color: white;
 }
-
+/* Styling for the navigation buttons */
 .nav-buttons {
   border-color: #212529;
   background-color: #212529;
   margin-right: 1vw;
 }
-
+/* Hover effect for the restart button */
 #restart-button:hover {
   border-color: #0c4c87;
   background-color: #0c4c87;
 }
-
+/* Hover effect for the close button */
 #close-button:hover {
   border-color: #870c0c;
   background-color: #870c0c;

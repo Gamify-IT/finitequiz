@@ -1,26 +1,43 @@
+/**
+ * This file contains all needed REST-Methods
+ */
 import axios, { AxiosResponse } from "axios";
-
 import config from "@/config";
 import { GameResultDTO } from "@/ts/models";
 import store from "@/store/index";
 
 
-/**
- * This file contains all needed REST-Methods
- */
 
+/**
+ * Fetches the questions for a specific configuration ID.
+ *
+ * @param configId The unique configuration ID for the game setup.
+ * @returns A promise that resolves to an AxiosResponse containing the questions.
+ */
 export function getQuestions(configId: string): Promise<AxiosResponse> {
   return axios.get(
     `${config.apiBaseUrl}/configurations/` + configId + `/questions`
   );
 }
 
+/**
+ * Fetches the volume level for a specific configuration ID.
+ *
+ * @param configId The unique configuration ID for the game setup.
+ * @returns A promise that resolves to an AxiosResponse containing the volume level data.
+ */
 export function getVolumeLevel(configId: string): Promise<AxiosResponse> {
   return axios.get(
     `${config.apiBaseUrl}/configurations/` + configId + '/volume'
   );
 }
 
+/**
+ * Sends the game result to the backend server.
+ *
+ * @param gameResultDTO The data transfer object (DTO) containing the game result.
+ * @returns A promise that resolves once the result has been successfully posted.
+ */
 export async function postGameResult(
   gameResultDTO: GameResultDTO 
 ): Promise<void> {
@@ -38,6 +55,12 @@ export async function postGameResult(
   }
 }
 
+/**
+ * Converts the raw data from the server response into a GameResultDTO object.
+ *
+ * @param dto The raw data object returned from the backend.
+ * @returns A GameResultDTO object populated with the server response data.
+ */
 export function fromDTO(dto: any): GameResultDTO {
   return new GameResultDTO(
     dto.configurationAsUUID,
