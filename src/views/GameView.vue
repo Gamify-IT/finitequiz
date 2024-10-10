@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- Progress bar -->
+    <!-- Progress bar to show how much progress the player has made -->
     <div class="progress">
       <div
           name="progress-bar"
@@ -12,7 +12,7 @@
           :aria-valuemax="initialQuestionCount"
       ></div>
     </div>
-
+    <!-- Display current question and answers if available -->
     <div v-if="currentQuestion">
       <div id="question-wrapper">
         <div id="question">
@@ -21,10 +21,12 @@
       </div>
       <div id="feedback">
         <h1>
+          <!-- Display current score -->
           Current score: <span class="outlined-text">{{ correctAnsweredQuestions.length }}</span> /
           <span class="outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
         </h1>
       </div>
+      <!-- Display list of possible answers for the current question -->
       <div id="answers-list">
         <b-button
             v-for="answer in currentAnswers"
@@ -41,24 +43,26 @@
         </b-button>
       </div>
     </div>
-
+    <!-- Show loading spinner when waiting for data -->
     <div v-if="loading" class="loader"></div>
-
+    <!-- End screen with results when the game ends -->
     <div id="end-text-wrapper" v-if="showEndscreen">
       <div v-if="!error" class="end-text">
         <p>
+          <!-- Display correct answers and total answers -->
           You answered <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length }}</span> of
           <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
           questions correctly.
         </p>
         <p>
+          <!-- Display score and rewards -->
           You've earned <span class="gold-text outlined-text">{{ store.state.score }} scores</span> and
           <span class="gold-text outlined-text">{{ store.state.rewards }} coins!</span>
         </p>
         <p v-if="store.state.score <= 50">Don't give up! You will get there!</p>
         <p v-else-if="store.state.score <= 70">Good job!</p>
         <p v-else>Wow! Congratulations!</p>
-
+        <!-- Display results summary -->
         <div class="results">
           <h2>Results Summary:</h2>
         </div>
@@ -72,11 +76,13 @@
             </tr>
             </thead>
             <tbody>
+            <!-- Display correct results -->
             <tr v-for="(result, index) in displayedCorrectResults" :key="'correct' + index">
               <td>{{ result.question.text }}</td>
               <td>{{ result.answer }}</td>
               <td><span class="result-icon yellow">&#10003;</span></td>
             </tr>
+            <!-- Display incorrect results -->
             <tr v-for="(result, index) in displayedWrongResults" :key="'wrong' + index">
               <td>{{ result.question.text }}</td>
               <td>{{ result.answer }}</td>
@@ -87,6 +93,7 @@
         </div>
       </div>
       <div v-if="error" class="end-text">
+        <!-- Show error message if something went wrong -->
         {{ errorText }}
       </div>
     </div>
@@ -124,6 +131,10 @@ const showAnswer = ref<string | null>(null);
 const maxRowsToShow = 7;
 const displayedCorrectResults = computed(() => correctAnsweredQuestions.value.slice(0, maxRowsToShow));
 const displayedWrongResults = computed(() => wrongAnsweredQuestions.value.slice(0, maxRowsToShow));
+
+/**
+ * Compute progress bar width
+ */
 const progressBarWidth = computed(() => {
   return (
       ((initialQuestionCount.value - questions.value.length) /
@@ -132,6 +143,9 @@ const progressBarWidth = computed(() => {
   ).toString();
 });
 
+/**
+ * Compute progress bar value
+ */
 const progressBarValue = computed(() => {
   return initialQuestionCount.value - questions.value.length;
 });
@@ -156,7 +170,8 @@ async function loadQuestions() {
 }
 
 /**
- * Create audio with volume level from overwrold
+ * Create audio with volume level from overworld
+ * @param pathToAudioFile
  */
 function createAudioWithVolume(pathToAudioFile: string): HTMLAudioElement {
   const audio = new Audio(pathToAudioFile); 
@@ -285,12 +300,13 @@ loadQuestions();
 </script>
 
 <style scoped>
-/* Your existing styles */
+/* Styling for the end text paragraphs */
 .end-text p:first-of-type,
 .end-text p:nth-of-type(2) {
   margin-top: 2cm;
 }
 
+/* Styling for the answer buttons */
 .answer {
   margin-left: 2vw;
   margin-top: 1vw;
@@ -299,7 +315,7 @@ loadQuestions();
   width: 47vw;
   font-size: 2vh;
 }
-
+/* Styling for the question container */
 #question-wrapper {
   float: left;
   margin-left: 2vw;
@@ -308,7 +324,7 @@ loadQuestions();
   width: 47vw;
   border: 1px solid black;
 }
-
+/* Styling for the question text */
 #question {
   height: 25vh;
   width: 47vw;
@@ -316,7 +332,7 @@ loadQuestions();
   vertical-align: middle;
   display: table-cell;
 }
-
+/* Styling for the feedback area */
 #feedback {
   margin-left: 2vw;
   margin-top: 2vw;
@@ -324,7 +340,7 @@ loadQuestions();
   height: 25vh;
   width: 47vw;
 }
-
+/* Styling for the progress bar */
 .progress-bar {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
@@ -333,7 +349,7 @@ loadQuestions();
   box-shadow: inset 0 0 0 2px #212529 !important;
   border: none !important;
 }
-
+/* Styling for the overall progress bar container */
 .progress {
   border-radius: 0 !important;
   background-color: white !important;
@@ -342,7 +358,7 @@ loadQuestions();
   box-shadow: inset 0 0 0 2px #212529 !important;
   border: none !important;
 }
-
+/* Styling for the end screen container */
 #end-text-wrapper {
   height: 100vh;
   width: 100%;
@@ -356,13 +372,13 @@ loadQuestions();
   background-attachment: fixed;
   opacity: 1.6;
 }
-
+/* Styling for the end text */
 .end-text {
   text-align: center;
   font-size: 6vh;
   color: white;
 }
-
+/* Styling for the loader spinner */
 .loader {
   margin: auto;
   border: 16px solid #f3f3f3;
@@ -372,12 +388,12 @@ loadQuestions();
   height: 2vw;
   animation: spin 2s linear infinite;
 }
-
+/* Styling for gold-colored text */
 .gold-text {
   color: gold;
   font-weight: bold;
 }
-
+/* Container for the results table */
 .results-table-container {
   margin: 0 auto;
   width: 80%;
@@ -385,17 +401,17 @@ loadQuestions();
   overflow-y: auto;
   border: 1px solid white;
 }
-
+/* Styling for the results summary section */
 .results {
   margin-top: 20px;
   text-align: center;
   color: white;
 }
-
+/* Styling for the results table */
 .results h2 {
   font-size: 4vh;
 }
-
+/* Styling for the results table */
 .results-table {
   width: 100%;
   border-collapse: collapse;
@@ -403,7 +419,7 @@ loadQuestions();
   color: white;
   opacity: 0.75;
 }
-
+/* Styling for table header and cells */
 .results-table th,
 .results-table td {
   border: 1px solid white;
@@ -413,7 +429,6 @@ loadQuestions();
   color: white;
   text-align: center;
 }
-
 .results-table-container {
   margin: 0 auto;
   width: 80%;
@@ -421,7 +436,7 @@ loadQuestions();
   overflow-y: auto;
   border: 1px solid white;
 }
-
+/* Icon styles for results (yellow for correct, red for incorrect) */
 .results-table .result-icon.yellow {
   color: yellow;
   font-size: 1.8vh;
@@ -436,16 +451,16 @@ loadQuestions();
   line-height: 1.8;
 }
 
-
+/* Green bold text for score display */
 .green-bold {
   color: #6a2900;
   font-weight: bold;
 }
-
+/* Styling for the answer list container */
 #answers-list {
   position: relative;
 }
-
+/* Info display for each answer (shown on hover) */
 .answer-info {
   position: absolute;
   top: 0;
@@ -456,11 +471,11 @@ loadQuestions();
   padding: 10px;
   border-radius: 5px;
 }
-
+/* Show info when hovering over an answer */
 .answer:hover .answer-info {
   display: block;
 }
-
+/* Text with an outline effect */
 .outlined-text {
   text-shadow:
       -1px -1px 0 #fff,
@@ -468,8 +483,5 @@ loadQuestions();
       -1px 1px 0 #fff,
       1px 1px 0 #fff;
 }
-
-
-
 
 </style>
