@@ -6,17 +6,20 @@ export class Question {
   text: string;
   rightAnswer: string;
   wrongAnswers: string[];
+  uuid: string;
 
   public constructor(
     id: string,
     text: string,
     rightAnswer: string,
-    wrongAnswers: string[]
+    wrongAnswers: string[],
+    uuid: string
   ) {
     this.id = id;
     this.text = text;
     this.rightAnswer = rightAnswer;
     this.wrongAnswers = wrongAnswers;
+    this.uuid = uuid;
   }
 }
 

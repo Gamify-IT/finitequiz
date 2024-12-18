@@ -71,3 +71,13 @@ export function fromDTO(dto: any): GameResultDTO {
     dto.timeSpent,
     dto.rewards);
 }
+
+/**
+ * Fetches an image by its UUID.
+ *
+ * @param imageUUID The UUID of the image.
+ * @returns A promise that resolves to an AxiosResponse containing the image.
+ */
+export function getImageByUUID(imageUUID: string): Promise<AxiosResponse> {
+  return axios.get(`${config.apiBaseUrl}/images/` + imageUUID);
+}
