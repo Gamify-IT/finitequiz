@@ -19,6 +19,17 @@
           <h2>{{ currentQuestion.text }}</h2>
         </div>
       </div>
+      <div>
+        <div v-if="images.length > 0">
+          <h3>Images</h3>
+          <div v-for="(imageDTO) in images" :key="imageDTO.imageUUID">
+            <img :src="'data:image/png;base64,' + imageDTO.image" alt="Image" />
+          </div>
+        </div>
+        <div v-else>
+          <p>No images found.</p>
+        </div>
+      </div>
       <div id="feedback">
         <h1>
           <!-- Display current score -->
@@ -109,6 +120,8 @@ import { computed, ref } from "vue";
 import correctAnswerSoundSource from "@/assets/music/correct_answer_sound.wav";
 import wrongAnswerSoundSource from "@/assets/music/wrong_answer_sound.mp3";
 import finishSoundSource from "@/assets/music/finish_sound.wav";
+import { getImageByUUID } from "@/ts/minigame-rest-client";
+import { watch } from "vue";
 
 let volumeLevel : number|null = 0;
 const configurationId = ref("");
@@ -131,6 +144,13 @@ const showAnswer = ref<string | null>(null);
 const maxRowsToShow = 7;
 const displayedCorrectResults = computed(() => correctAnsweredQuestions.value.slice(0, maxRowsToShow));
 const displayedWrongResults = computed(() => wrongAnsweredQuestions.value.slice(0, maxRowsToShow));
+const images = ref<Array<{ imageUUID: string; image: string }>>([]);
+
+watch(currentQuestion, (newQuestion) => {
+  if (newQuestion && newQuestion.uuid) {
+    loadImages(newQuestion.uuid);
+  }
+});
 
 /**
  * Compute progress bar width
@@ -150,6 +170,14 @@ const progressBarValue = computed(() => {
   return initialQuestionCount.value - questions.value.length;
 });
 
+const loadImages = async (uuid: string) => {
+  try {
+    const response = await getImageByUUID(uuid);
+    images.value = response.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Bilder:", error);
+  }
+};
 
 /**
  * Initialize all fields
@@ -244,6 +272,11 @@ function nextQuestion() {
     let number = Math.floor(Math.random() * questions.value.length);
     currentQuestion.value = questions.value[number];
     questions.value.splice(number, 1);
+
+    if (currentQuestion.value.uuid) {
+      loadImages(currentQuestion.value.uuid);
+    }
+
     currentAnswers.value = currentQuestion.value.wrongAnswers;
     currentAnswers.value.push(currentQuestion.value.rightAnswer);
     currentAnswers.value = currentAnswers.value
@@ -264,20 +297,21 @@ function nextQuestion() {
     resetValues();
     loading.value = true;
     postGameResult(result)
-      .then(() => {
-        loading.value = false;
-        showEndscreen.value = true;
-        playSound(finishSoundSource);
-      })
-      .catch((reason) => {
-        loading.value = false;
-        showEndscreen.value = true;
-        error.value = true;
-        errorText.value = reason.response.data.message;
-        toast.error(reason.response.data.message);
-      });
+        .then(() => {
+          loading.value = false;
+          showEndscreen.value = true;
+          playSound(finishSoundSource);
+        })
+        .catch((reason) => {
+          loading.value = false;
+          showEndscreen.value = true;
+          error.value = true;
+          errorText.value = reason.response.data.message;
+          toast.error(reason.response.data.message);
+        });
   }
 }
+
 
 /**
  * Reset fields

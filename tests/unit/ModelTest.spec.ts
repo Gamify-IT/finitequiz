@@ -5,7 +5,7 @@ describe("models.ts", () => {
     const question = new Question("id", "question text", "right answer", [
       "wrong answer one",
       "wrong answer two",
-    ]);
+    ], "123");
     expect(question.wrongAnswers.length).toBe(2);
     const config = new Config([question]);
     expect(config.questions.length).toBe(1);
