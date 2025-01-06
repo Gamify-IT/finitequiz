@@ -146,11 +146,7 @@ const displayedCorrectResults = computed(() => correctAnsweredQuestions.value.sl
 const displayedWrongResults = computed(() => wrongAnsweredQuestions.value.slice(0, maxRowsToShow));
 const images = ref<Array<{ imageUUID: string; image: string }>>([]);
 
-watch(currentQuestion, (newQuestion) => {
-  if (newQuestion && newQuestion.uuid) {
-    loadImages(newQuestion.uuid);
-  }
-});
+
 
 /**
  * Compute progress bar width
@@ -173,36 +169,58 @@ const progressBarValue = computed(() => {
 const loadImages = async (uuid: string) => {
   try {
     const response = await getImageByUUID(uuid);
-    images.value = response.data;
+
+    if (response.data && response.data.length > 0) {
+      images.value = response.data;
+    } else {
+      console.log("Keine Bilder gefunden für UUID:", uuid);
+      images.value = [];
+    }
   } catch (error) {
     console.error("Fehler beim Laden der Bilder:", error);
+    images.value = [];
   }
 };
 
-/**
- * Initialize all fields
- */
 async function loadQuestions() {
   let locationArray = window.location.toString().split("/");
   configurationId.value = locationArray[locationArray.length - 1];
-  getQuestions(configurationId.value).then((response) => {
-    questions.value = response.data;
+
+  try {
+    const questionsResponse = await getQuestions(configurationId.value);
+    questions.value = questionsResponse.data;
     initialQuestionCount.value = questions.value.length;
+
+    for (const question of questions.value) {
+      if (question.uuid) {
+        await loadImages(question.uuid);
+      }
+    }
+
     showEndscreen.value = false;
     error.value = false;
     nextQuestion();
-  });
+  } catch (error) {
+    console.error("Fehler beim Laden der Fragen:", error);
+    errorText.value = "Fehler beim Laden der Fragen";
+  }
+
   getVolumeLevel(configurationId.value).then((response) => {
     volumeLevel = response.data.volumeLevel;
   });
 }
 
+watch(currentQuestion, (newQuestion) => {
+  if (newQuestion && newQuestion.uuid) {
+    loadImages(newQuestion.uuid);
+  }
+});
 /**
  * Create audio with volume level from overworld
  * @param pathToAudioFile
  */
 function createAudioWithVolume(pathToAudioFile: string): HTMLAudioElement {
-  const audio = new Audio(pathToAudioFile); 
+  const audio = new Audio(pathToAudioFile);
   if (volumeLevel == 2 || volumeLevel == 3) {
     volumeLevel = 1;
   } else if (volumeLevel == 1) {
@@ -272,10 +290,6 @@ function nextQuestion() {
     let number = Math.floor(Math.random() * questions.value.length);
     currentQuestion.value = questions.value[number];
     questions.value.splice(number, 1);
-
-    if (currentQuestion.value.uuid) {
-      loadImages(currentQuestion.value.uuid);
-    }
 
     currentAnswers.value = currentQuestion.value.wrongAnswers;
     currentAnswers.value.push(currentQuestion.value.rightAnswer);
