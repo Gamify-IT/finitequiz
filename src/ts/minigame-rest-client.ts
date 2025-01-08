@@ -79,6 +79,6 @@ export function fromDTO(dto: any): GameResultDTO {
  * @returns A promise that resolves to an AxiosResponse containing the image.
  */
 export function getImageByUUID(uuid: string): Promise<AxiosResponse> {
+  console.log("Requesting images for UUID: ", uuid);
   return axios.get(`${config.apiBaseUrl}/configurations/${uuid}/images`);
 }
-

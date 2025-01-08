@@ -18,6 +18,9 @@
         <div id="question">
           <h2>{{ currentQuestion.text }}</h2>
         </div>
+        <div v-if="currentImage">
+          <img :src="'data:image/png;base64,' + currentImage.image" alt="Question Image" />
+        </div>
       </div>
       <div>
         <div v-if="images.length > 0">
@@ -166,21 +169,34 @@ const progressBarValue = computed(() => {
   return initialQuestionCount.value - questions.value.length;
 });
 
+const currentImage = computed(() => {
+  if (!currentQuestion.value || !currentQuestion.value.uuid) return null;
+  return images.value.find(image => image.imageUUID === currentQuestion.value!.uuid) || null;
+});
+
+
+interface Image {
+  imageUUID: string;
+  image: string;
+}
+
 const loadImages = async (uuid: string) => {
   try {
     const response = await getImageByUUID(uuid);
 
     if (response.data && response.data.length > 0) {
-      images.value = response.data;
+      const newImages = response.data.filter((newImage: Image) =>
+          !images.value.some(image => image.imageUUID === newImage.imageUUID)
+      );
+      images.value.push(...newImages);
     } else {
-      console.log("Keine Bilder gefunden für UUID:", uuid);
-      images.value = [];
+      console.log("No images found for UUID:", uuid);
     }
   } catch (error) {
-    console.error("Fehler beim Laden der Bilder:", error);
-    images.value = [];
+    console.error("Error loading the images", error);
   }
 };
+
 
 async function loadQuestions() {
   let locationArray = window.location.toString().split("/");
@@ -201,8 +217,8 @@ async function loadQuestions() {
     error.value = false;
     nextQuestion();
   } catch (error) {
-    console.error("Fehler beim Laden der Fragen:", error);
-    errorText.value = "Fehler beim Laden der Fragen";
+    console.error("Error loading the questions:", error);
+    errorText.value = "Error loading the questions";
   }
 
   getVolumeLevel(configurationId.value).then((response) => {
@@ -210,11 +226,8 @@ async function loadQuestions() {
   });
 }
 
-watch(currentQuestion, (newQuestion) => {
-  if (newQuestion && newQuestion.uuid) {
-    loadImages(newQuestion.uuid);
-  }
-});
+
+
 /**
  * Create audio with volume level from overworld
  * @param pathToAudioFile
