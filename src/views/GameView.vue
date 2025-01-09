@@ -12,70 +12,72 @@
           :aria-valuemax="initialQuestionCount"
       ></div>
     </div>
+
     <!-- Display current question and answers if available -->
     <div v-if="currentQuestion">
-      <div id="question-wrapper">
-        <div id="question">
-          <h2>{{ currentQuestion.text }}</h2>
-        </div>
-        <div v-if="currentImage">
-          <img :src="'data:image/png;base64,' + currentImage.image" alt="Question Image" />
-        </div>
-      </div>
-      <div>
-        <div v-if="images.length > 0">
-          <h3>Images</h3>
-          <div v-for="(imageDTO) in images" :key="imageDTO.imageUUID">
-            <img :src="'data:image/png;base64,' + imageDTO.image" alt="Image" />
+      <div id="question-container">
+        <!-- Question text -->
+        <div id="question-wrapper">
+          <div id="question">
+            <h2>{{ currentQuestion.text }}</h2>
           </div>
         </div>
-        <div v-else>
-          <p>No images found.</p>
+
+        <!-- Images below the question -->
+        <div id="images-wrapper">
+          <div v-for="(imageDTO) in images" :key="imageDTO.imageUUID" class="image-box">
+            <img :src="'data:image/png;base64,' + imageDTO.image" alt="Image"/>
+          </div>
+        </div>
+
+        <!-- Answer options below the images -->
+        <div id="answers-list">
+          <b-button
+              v-for="answer in currentAnswers"
+              :key="answer"
+              class="answer"
+              variant="outline-info"
+              :name="'buttonId' + answer"
+              :disabled="buttonsDisabled"
+              @click="chooseAnswer($event, answer)"
+              @mouseover="showAnswer = answer"
+              @mouseleave="showAnswer = null"
+          >
+            {{ answer }}
+          </b-button>
         </div>
       </div>
+
+      <!-- Feedback section -->
       <div id="feedback">
         <h1>
-          <!-- Display current score -->
           Current score: <span class="outlined-text">{{ correctAnsweredQuestions.length }}</span> /
           <span class="outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
         </h1>
       </div>
-      <!-- Display list of possible answers for the current question -->
-      <div id="answers-list">
-        <b-button
-            v-for="answer in currentAnswers"
-            :key="answer"
-            class="answer"
-            variant="outline-info"
-            :name="'buttonId' + answer"
-            :disabled="buttonsDisabled"
-            @click="chooseAnswer($event, answer)"
-            @mouseover="showAnswer = answer"
-            @mouseleave="showAnswer = null"
-        >
-          {{ answer }}
-        </b-button>
-      </div>
     </div>
+
     <!-- Show loading spinner when waiting for data -->
     <div v-if="loading" class="loader"></div>
+
     <!-- End screen with results when the game ends -->
     <div id="end-text-wrapper" v-if="showEndscreen">
       <div v-if="!error" class="end-text">
         <p>
-          <!-- Display correct answers and total answers -->
           You answered <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length }}</span> of
-          <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
+          <span class="green-bold outlined-text">{{
+              correctAnsweredQuestions.length + wrongAnsweredQuestions.length
+            }}</span>
           questions correctly.
         </p>
         <p>
-          <!-- Display score and rewards -->
           You've earned <span class="gold-text outlined-text">{{ store.state.score }} scores</span> and
           <span class="gold-text outlined-text">{{ store.state.rewards }} coins!</span>
         </p>
         <p v-if="store.state.score <= 50">Don't give up! You will get there!</p>
         <p v-else-if="store.state.score <= 70">Good job!</p>
         <p v-else>Wow! Congratulations!</p>
+
         <!-- Display results summary -->
         <div class="results">
           <h2>Results Summary:</h2>
@@ -90,13 +92,11 @@
             </tr>
             </thead>
             <tbody>
-            <!-- Display correct results -->
             <tr v-for="(result, index) in displayedCorrectResults" :key="'correct' + index">
               <td>{{ result.question.text }}</td>
               <td>{{ result.answer }}</td>
               <td><span class="result-icon yellow">&#10003;</span></td>
             </tr>
-            <!-- Display incorrect results -->
             <tr v-for="(result, index) in displayedWrongResults" :key="'wrong' + index">
               <td>{{ result.question.text }}</td>
               <td>{{ result.answer }}</td>
@@ -107,26 +107,26 @@
         </div>
       </div>
       <div v-if="error" class="end-text">
-        <!-- Show error message if something went wrong -->
         {{ errorText }}
       </div>
     </div>
   </div>
 </template>
 
+
 <script setup lang="ts">
-import { getQuestions, getVolumeLevel, postGameResult } from "@/ts/minigame-rest-client";
-import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
-import { useToast } from "vue-toastification";
+import {getQuestions, getVolumeLevel, postGameResult} from "@/ts/minigame-rest-client";
+import {GameResultDTO, Question, RoundResultDTO} from "@/ts/models";
+import {useToast} from "vue-toastification";
 import store from "@/store/index";
-import { computed, ref } from "vue";
+import {computed, ref} from "vue";
 import correctAnswerSoundSource from "@/assets/music/correct_answer_sound.wav";
 import wrongAnswerSoundSource from "@/assets/music/wrong_answer_sound.mp3";
 import finishSoundSource from "@/assets/music/finish_sound.wav";
-import { getImageByUUID } from "@/ts/minigame-rest-client";
-import { watch } from "vue";
+import {getImageByUUID} from "@/ts/minigame-rest-client";
+import {watch} from "vue";
 
-let volumeLevel : number|null = 0;
+let volumeLevel: number | null = 0;
 const configurationId = ref("");
 const questions = ref<Array<Question>>([]);
 const initialQuestionCount = ref(0);
@@ -148,7 +148,6 @@ const maxRowsToShow = 7;
 const displayedCorrectResults = computed(() => correctAnsweredQuestions.value.slice(0, maxRowsToShow));
 const displayedWrongResults = computed(() => wrongAnsweredQuestions.value.slice(0, maxRowsToShow));
 const images = ref<Array<{ imageUUID: string; image: string }>>([]);
-
 
 
 /**
@@ -225,7 +224,6 @@ async function loadQuestions() {
     volumeLevel = response.data.volumeLevel;
   });
 }
-
 
 
 /**
@@ -307,9 +305,9 @@ function nextQuestion() {
     currentAnswers.value = currentQuestion.value.wrongAnswers;
     currentAnswers.value.push(currentQuestion.value.rightAnswer);
     currentAnswers.value = currentAnswers.value
-        .map((value) => ({ value, sort: Math.random() }))
+        .map((value) => ({value, sort: Math.random()}))
         .sort((a, b) => a.sort - b.sort)
-        .map(({ value }) => value);
+        .map(({value}) => value);
   } else {
     const timeSpent = Math.ceil(getCurrentTimeInSeconds() - startTime);
     let result = new GameResultDTO(
@@ -352,7 +350,7 @@ function resetValues() {
 /**
  * Play sound with neccesary volume level
  */
-async function playSound(pathToAudioFile: string){
+async function playSound(pathToAudioFile: string) {
   const sound = await createAudioWithVolume(pathToAudioFile);
   sound.play();
 }
@@ -361,7 +359,7 @@ loadQuestions();
 </script>
 
 <style scoped>
-/* Styling for the end text paragraphs */
+/* Styling for the final text paragraphs */
 .end-text p:first-of-type,
 .end-text p:nth-of-type(2) {
   margin-top: 2cm;
@@ -376,31 +374,69 @@ loadQuestions();
   width: 47vw;
   font-size: 2vh;
 }
-/* Styling for the question container */
-#question-wrapper {
-  float: left;
-  margin-left: 2vw;
+
+/* Container for the question and images */
+#question-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   margin-top: 2vw;
-  height: 25vh;
-  width: 47vw;
-  border: 1px solid black;
+  width: 100%;
 }
+
+/* Styling for the question wrapper */
+#question-wrapper {
+  width: 80%;
+  padding: 1vw;
+  border: 1px solid black;
+  height: 20vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* Styling for the question text */
 #question {
-  height: 25vh;
-  width: 47vw;
   text-align: center;
-  vertical-align: middle;
-  display: table-cell;
+  font-size: 3vh;
 }
-/* Styling for the feedback area */
-#feedback {
-  margin-left: 2vw;
+
+/* Styling for the images wrapper */
+#images-wrapper {
+  width: 80%;
+  padding: 1vw;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1vw;
   margin-top: 2vw;
-  float: left;
-  height: 25vh;
-  width: 47vw;
 }
+
+/* Styling for each image */
+.image-box {
+  width: 20%; /* Images are now smaller */
+  margin-bottom: 1vw;
+  text-align: center;
+}
+
+/* Styling for the feedback */
+#feedback {
+  margin-top: 2vw;
+  width: 100%;
+  text-align: center;
+}
+
+/* Styling for the answer buttons */
+.answer {
+  margin-left: 2vw;
+  margin-top: 1vw;
+  float: left;
+  height: 10vh;
+  width: 47vw;
+  font-size: 2vh;
+}
+
 /* Styling for the progress bar */
 .progress-bar {
   border-top-right-radius: 0 !important;
@@ -410,7 +446,8 @@ loadQuestions();
   box-shadow: inset 0 0 0 2px #212529 !important;
   border: none !important;
 }
-/* Styling for the overall progress bar container */
+
+/* Styling for the entire progress bar container */
 .progress {
   border-radius: 0 !important;
   background-color: white !important;
@@ -419,6 +456,7 @@ loadQuestions();
   box-shadow: inset 0 0 0 2px #212529 !important;
   border: none !important;
 }
+
 /* Styling for the end screen container */
 #end-text-wrapper {
   height: 100vh;
@@ -433,12 +471,14 @@ loadQuestions();
   background-attachment: fixed;
   opacity: 1.6;
 }
+
 /* Styling for the end text */
 .end-text {
   text-align: center;
   font-size: 6vh;
   color: white;
 }
+
 /* Styling for the loader spinner */
 .loader {
   margin: auto;
@@ -449,11 +489,13 @@ loadQuestions();
   height: 2vw;
   animation: spin 2s linear infinite;
 }
-/* Styling for gold-colored text */
+
+/* Styling for golden text */
 .gold-text {
   color: gold;
   font-weight: bold;
 }
+
 /* Container for the results table */
 .results-table-container {
   margin: 0 auto;
@@ -462,16 +504,19 @@ loadQuestions();
   overflow-y: auto;
   border: 1px solid white;
 }
-/* Styling for the results summary section */
+
+/* Styling for the results summary area */
 .results {
   margin-top: 20px;
   text-align: center;
   color: white;
 }
-/* Styling for the results table */
+
+/* Styling for the results table header */
 .results h2 {
   font-size: 4vh;
 }
+
 /* Styling for the results table */
 .results-table {
   width: 100%;
@@ -480,7 +525,8 @@ loadQuestions();
   color: white;
   opacity: 0.75;
 }
-/* Styling for table header and cells */
+
+/* Styling for table headers and cells */
 .results-table th,
 .results-table td {
   border: 1px solid white;
@@ -490,6 +536,7 @@ loadQuestions();
   color: white;
   text-align: center;
 }
+
 .results-table-container {
   margin: 0 auto;
   width: 80%;
@@ -497,6 +544,7 @@ loadQuestions();
   overflow-y: auto;
   border: 1px solid white;
 }
+
 /* Icon styles for results (yellow for correct, red for incorrect) */
 .results-table .result-icon.yellow {
   color: yellow;
@@ -517,10 +565,12 @@ loadQuestions();
   color: #6a2900;
   font-weight: bold;
 }
+
 /* Styling for the answer list container */
 #answers-list {
   position: relative;
 }
+
 /* Info display for each answer (shown on hover) */
 .answer-info {
   position: absolute;
@@ -532,17 +582,18 @@ loadQuestions();
   padding: 10px;
   border-radius: 5px;
 }
+
 /* Show info when hovering over an answer */
 .answer:hover .answer-info {
   display: block;
 }
+
 /* Text with an outline effect */
 .outlined-text {
-  text-shadow:
-      -1px -1px 0 #fff,
-      1px -1px 0 #fff,
-      -1px 1px 0 #fff,
-      1px 1px 0 #fff;
+  text-shadow: -1px -1px 0 #fff,
+  1px -1px 0 #fff,
+  -1px 1px 0 #fff,
+  1px 1px 0 #fff;
 }
-
 </style>
+
