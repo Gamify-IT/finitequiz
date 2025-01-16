@@ -31,6 +31,7 @@
         </div>
 
         <!-- Answer options below the images -->
+        <!-- Answer options below the images -->
         <div id="answers-list">
           <b-button
               v-for="answer in currentAnswers"
@@ -43,11 +44,21 @@
               @mouseover="showAnswer = answer"
               @mouseleave="showAnswer = null"
           >
+            <div v-if="answer === currentQuestion.rightAnswer[1]" class="answer-with-image">
+              <img
+                  :src="'data:image/png;base64,' + currentCorrectAnswerImage.image"
+                  alt="Correct Answer Image"
+                  class="answer-image"
+              />
+            </div>
             {{ answer }}
           </b-button>
         </div>
-      </div>
-
+        <div v-if="showModal" class="modal" @click.self="closeModal">
+          <div class="modal-content">
+            <img :src="'data:image/png;base64,' + currentImageToShow?.image" alt="Large View"/>
+          </div>
+        </div>
       <!-- Feedback section -->
       <div id="feedback">
         <h1>
@@ -65,9 +76,7 @@
       <div v-if="!error" class="end-text">
         <p>
           You answered <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length }}</span> of
-          <span class="green-bold outlined-text">{{
-              correctAnsweredQuestions.length + wrongAnsweredQuestions.length
-            }}</span>
+          <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
           questions correctly.
         </p>
         <p>
@@ -111,7 +120,9 @@
       </div>
     </div>
   </div>
+  </div>
 </template>
+
 
 
 <script setup lang="ts">
@@ -148,7 +159,9 @@ const maxRowsToShow = 7;
 const displayedCorrectResults = computed(() => correctAnsweredQuestions.value.slice(0, maxRowsToShow));
 const displayedWrongResults = computed(() => wrongAnsweredQuestions.value.slice(0, maxRowsToShow));
 const images = ref<Array<{ imageUUID: string; image: string }>>([]);
-
+const correctAnswerImage = ref<{ imageUUID: string; image: string } | null>(null);
+const showModal = ref(false);
+const currentImageToShow = ref<{ imageUUID: string; image: string } | null>(null);
 
 /**
  * Compute progress bar width
@@ -173,6 +186,10 @@ const currentImage = computed(() => {
   return images.value.find(image => image.imageUUID === currentQuestion.value!.uuid) || null;
 });
 
+const currentCorrectAnswerImage = computed(() => {
+  if (!currentQuestion.value || !currentQuestion.value.rightAnswer[0]) return null;
+  return correctAnswerImage.value;
+});
 
 interface Image {
   imageUUID: string;
@@ -254,7 +271,7 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
       currentQuestion.value!,
       chosenAnswer
   );
-  if (chosenAnswer === currentQuestion.value!.rightAnswer) {
+  if (chosenAnswer === currentQuestion.value!.rightAnswer[1]) {
     correctAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "green";
     playSound(correctAnswerSoundSource);
@@ -295,7 +312,7 @@ function getCurrentTimeInSeconds() {
 /**
  * Randomly choose next question
  */
-function nextQuestion() {
+async function nextQuestion() {
   buttonsDisabled.value = false;
   if (questions.value.length >= 1) {
     let number = Math.floor(Math.random() * questions.value.length);
@@ -303,11 +320,14 @@ function nextQuestion() {
     questions.value.splice(number, 1);
 
     currentAnswers.value = currentQuestion.value.wrongAnswers;
-    currentAnswers.value.push(currentQuestion.value.rightAnswer);
+    currentAnswers.value.push(currentQuestion.value.rightAnswer[1]);
     currentAnswers.value = currentAnswers.value
         .map((value) => ({value, sort: Math.random()}))
         .sort((a, b) => a.sort - b.sort)
         .map(({value}) => value);
+    if (currentQuestion.value.rightAnswer[0]) {
+      await loadCorrectAnswerImage(currentQuestion.value.rightAnswer[1]);
+    }
   } else {
     const timeSpent = Math.ceil(getCurrentTimeInSeconds() - startTime);
     let result = new GameResultDTO(
@@ -353,6 +373,29 @@ function resetValues() {
 async function playSound(pathToAudioFile: string) {
   const sound = await createAudioWithVolume(pathToAudioFile);
   sound.play();
+}
+
+const loadCorrectAnswerImage = async (uuid: string) => {
+  try {
+    const response = await getImageByUUID(uuid);
+    if (response.data && response.data.length > 0) {
+      correctAnswerImage.value = response.data[0];
+    } else {
+      console.log("No correct answer image found for UUID:", uuid);
+    }
+  } catch (error) {
+    console.error("Error loading the correct answer image", error);
+  }
+};
+
+function openModal(imageDTO: { imageUUID: string; image: string }) {
+  currentImageToShow.value = imageDTO;
+  showModal.value = true;
+}
+
+function closeModal() {
+  showModal.value = false;
+  currentImageToShow.value = null;
 }
 
 loadQuestions();
@@ -436,6 +479,20 @@ loadQuestions();
   width: 47vw;
   font-size: 2vh;
 }
+
+.answer-with-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+}
+
+.answer-image {
+  width: 90px;
+  height: 90px;
+  margin-right: 10px;
+}
+
 
 /* Styling for the progress bar */
 .progress-bar {
@@ -594,6 +651,26 @@ loadQuestions();
   1px -1px 0 #fff,
   -1px 1px 0 #fff,
   1px 1px 0 #fff;
+}
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content img {
+  max-width: 80%;
+  max-height: 80%;
+  margin: auto;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
 }
 </style>
 

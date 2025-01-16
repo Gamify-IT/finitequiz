@@ -4,14 +4,14 @@
 export class Question {
   id: string;
   text: string;
-  rightAnswer: string;
+  rightAnswer: [string, string];
   wrongAnswers: string[];
   uuid: string;
 
   public constructor(
     id: string,
     text: string,
-    rightAnswer: string,
+    rightAnswer: [string, string],
     wrongAnswers: string[],
     uuid: string
   ) {

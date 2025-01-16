@@ -2,7 +2,10 @@ import { Config, GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
 
 describe("models.ts", () => {
   test("test models", () => {
-    const question = new Question("id", "question text", "right answer", [
+    const question = new Question("id", "question text", [
+      "wrong answer one",
+      "wrong answer two",
+    ], [
       "wrong answer one",
       "wrong answer two",
     ], "123");
