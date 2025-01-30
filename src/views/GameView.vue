@@ -19,18 +19,20 @@
         <!-- Question text -->
         <div id="question-wrapper">
           <div id="question">
-            <h2>{{ currentQuestion.text }}</h2>
+            <h2 v-if="currentQuestion.text">{{ currentQuestion.text }}</h2>
           </div>
         </div>
 
         <!-- Images below the question -->
-        <div id="images-wrapper">
-          <div v-for="(imageDTO) in images" :key="imageDTO.imageUUID" class="image-box">
-            <img :src="'data:image/png;base64,' + imageDTO.image" alt="Image"/>
+        <div id="images-wrapper" v-if="filteredImages.length > 0">
+          <div
+              v-for="(imageDTO) in filteredImages"
+              :key="imageDTO.imageUUID"
+              class="image-box">
+            <img v-if="imageDTO.image" :src="'data:image/png;base64,' + imageDTO.image" alt="Image"/>
           </div>
         </div>
 
-        <!-- Answer options below the images -->
         <!-- Answer options below the images -->
         <div id="answers-list">
           <b-button
@@ -44,14 +46,29 @@
               @mouseover="showAnswer = answer"
               @mouseleave="showAnswer = null"
           >
+            <!-- Correct answer with image -->
             <div v-if="answer === currentQuestion.rightAnswer[1]" class="answer-with-image">
-              <img
-                  :src="'data:image/png;base64,' + currentCorrectAnswerImage.image"
-                  alt="Correct Answer Image"
-                  class="answer-image"
-              />
+              <div v-if="currentCorrectAnswerImage?.image">
+                <img :src="'data:image/png;base64,' + currentCorrectAnswerImage.image" alt="Correct Answer Image" class="answer-image"/>
+              </div>
+              <div v-if="currentQuestion.rightAnswer[0] !== 'no input'">
+                {{ currentQuestion.rightAnswer[0] }}
+              </div>
             </div>
-            {{ answer }}
+            <div>
+              <div
+                  v-if="wrongAnswerImagesURLs.has(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')">
+                <img
+                    :src="wrongAnswerImagesURLs.get(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')"
+                    alt="Wrong Answer Image"
+                    class="answer-image"
+                />
+              </div>
+
+              <div v-if="currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.text !== 'no input'">
+                {{ answer }}
+              </div>
+            </div>
           </b-button>
         </div>
         <div v-if="showModal" class="modal" @click.self="closeModal">
@@ -59,6 +76,8 @@
             <img :src="'data:image/png;base64,' + currentImageToShow?.image" alt="Large View"/>
           </div>
         </div>
+      </div>
+
       <!-- Feedback section -->
       <div id="feedback">
         <h1>
@@ -120,11 +139,9 @@
       </div>
     </div>
   </div>
-  </div>
 </template>
 
-
-
+/* eslint-disable */
 <script setup lang="ts">
 import {getQuestions, getVolumeLevel, postGameResult} from "@/ts/minigame-rest-client";
 import {GameResultDTO, Question, RoundResultDTO} from "@/ts/models";
@@ -162,6 +179,7 @@ const images = ref<Array<{ imageUUID: string; image: string }>>([]);
 const correctAnswerImage = ref<{ imageUUID: string; image: string } | null>(null);
 const showModal = ref(false);
 const currentImageToShow = ref<{ imageUUID: string; image: string } | null>(null);
+const wrongAnswerImagesURLs = ref<Map<string, string>>(new Map());
 
 /**
  * Compute progress bar width
@@ -189,6 +207,12 @@ const currentImage = computed(() => {
 const currentCorrectAnswerImage = computed(() => {
   if (!currentQuestion.value || !currentQuestion.value.rightAnswer[0]) return null;
   return correctAnswerImage.value;
+});
+const filteredImages = computed(() => {
+  if (!currentQuestion.value) return [];
+  return images.value.filter(
+      image => image.imageUUID === currentQuestion.value?.uuid
+  );
 });
 
 interface Image {
@@ -271,18 +295,29 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
       currentQuestion.value!,
       chosenAnswer
   );
+
   if (chosenAnswer === currentQuestion.value!.rightAnswer[1]) {
     correctAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "green";
     playSound(correctAnswerSoundSource);
   } else {
+    const wrongAnswer = currentQuestion.value!.wrongAnswers.find(
+        (wa) => wa.text === chosenAnswer
+    );
+    if (wrongAnswer) {
+      roundResult = new RoundResultDTO(
+          currentQuestion.value!.id,
+          currentQuestion.value!,
+          wrongAnswer.text
+      );
+      loadWrongAnswerImage(wrongAnswer.uuid);
+    }
     wrongAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "red";
     playSound(wrongAnswerSoundSource);
   }
   score.value =
       correctAnsweredQuestions.value.length / initialQuestionCount.value;
-
   document.getElementsByName("progress-bar")[0].style.width =
       progressBarWidth.value + "%";
   delay(1000)
@@ -319,12 +354,16 @@ async function nextQuestion() {
     currentQuestion.value = questions.value[number];
     questions.value.splice(number, 1);
 
-    currentAnswers.value = currentQuestion.value.wrongAnswers;
+    currentAnswers.value = currentQuestion.value.wrongAnswers.map(answer => answer.text);
     currentAnswers.value.push(currentQuestion.value.rightAnswer[1]);
     currentAnswers.value = currentAnswers.value
         .map((value) => ({value, sort: Math.random()}))
         .sort((a, b) => a.sort - b.sort)
         .map(({value}) => value);
+
+    currentQuestion.value.wrongAnswers.forEach(wrongAnswer => {
+      loadWrongAnswerImage(wrongAnswer.uuid);
+    });
     if (currentQuestion.value.rightAnswer[0]) {
       await loadCorrectAnswerImage(currentQuestion.value.rightAnswer[1]);
     }
@@ -398,6 +437,18 @@ function closeModal() {
   currentImageToShow.value = null;
 }
 
+const loadWrongAnswerImage = async (uuid: string) => {
+  try {
+    const response = await getImageByUUID(uuid);
+    if (response.data && response.data.length > 0) {
+      wrongAnswerImagesURLs.value.set(uuid, 'data:image/png;base64,' + response.data[0].image);
+    } else {
+      console.log("No image found for UUID:", uuid);
+    }
+  } catch (error) {
+    console.error("Error loading the wrong answer image", error);
+  }
+};
 loadQuestions();
 </script>
 
@@ -652,6 +703,7 @@ loadQuestions();
   -1px 1px 0 #fff,
   1px 1px 0 #fff;
 }
+
 .modal {
   position: fixed;
   top: 0;
@@ -673,4 +725,3 @@ loadQuestions();
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
 }
 </style>
-

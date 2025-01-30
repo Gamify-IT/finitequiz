@@ -6,8 +6,8 @@ describe("models.ts", () => {
       "wrong answer one",
       "wrong answer two",
     ], [
-      "wrong answer one",
-      "wrong answer two",
+      { uuid: "3", text: "wrong answer one" },
+      { uuid: "4", text: "wrong answer two" },
     ], "123");
     expect(question.wrongAnswers.length).toBe(2);
     const config = new Config([question]);

@@ -1,3 +1,13 @@
+export class WrongAnswer {
+  uuid: string;
+  text: string;
+
+  public constructor(uuid: string, text: string) {
+    this.uuid = uuid;
+    this.text = text;
+  }
+}
+
 /**
  * This file defines all the needed type-correct models
  */
@@ -5,14 +15,14 @@ export class Question {
   id: string;
   text: string;
   rightAnswer: [string, string];
-  wrongAnswers: string[];
+  wrongAnswers: WrongAnswer[];
   uuid: string;
 
   public constructor(
     id: string,
     text: string,
     rightAnswer: [string, string],
-    wrongAnswers: string[],
+    wrongAnswers: WrongAnswer[],
     uuid: string
   ) {
     this.id = id;
