@@ -22,6 +22,11 @@
             <h2 v-if="currentQuestion.text">{{ currentQuestion.text }}</h2>
           </div>
         </div>
+        <div v-if="showModal" class="modal" @click.self="closeModal">
+          <div class="modal-content">
+            <img :src="'data:image/png;base64,' + currentImageToShow?.image" alt="Large View"/>
+          </div>
+        </div>
 
         <!-- Images below the question -->
         <div id="images-wrapper" v-if="filteredImages.length > 0">
@@ -29,7 +34,16 @@
               v-for="(imageDTO) in filteredImages"
               :key="imageDTO.imageUUID"
               class="image-box">
-            <img v-if="imageDTO.image" :src="'data:image/png;base64,' + imageDTO.image" alt="Image"/>
+            <img
+                v-if="imageDTO.image"
+                :src="'data:image/png;base64,' + imageDTO.image"
+                alt="Image"
+                class="clickable-image"
+                @click="openModal({ imageUUID: imageDTO.imageUUID, image: imageDTO.image })"
+            />
+            <p v-if="imageDTO.description" class="image-description">
+              {{ imageDTO.description }}
+            </p>
           </div>
         </div>
 
@@ -47,17 +61,18 @@
               @mouseleave="showAnswer = null"
           >
             <!-- Correct answer with image -->
+            <!-- Correct Answer Section -->
             <div v-if="answer === currentQuestion.rightAnswer[1]" class="answer-with-image">
-              <div v-if="currentCorrectAnswerImage?.image">
+              <div v-if="currentCorrectAnswerImage?.image" class="image-container">
                 <img :src="'data:image/png;base64,' + currentCorrectAnswerImage.image" alt="Correct Answer Image" class="answer-image"/>
               </div>
               <div v-if="currentQuestion.rightAnswer[0] !== 'no input'">
                 {{ currentQuestion.rightAnswer[0] }}
               </div>
             </div>
+            <!-- Open Image button placed outside of the box, aligned to the bottom-right corner -->
             <div>
-              <div
-                  v-if="wrongAnswerImagesURLs.has(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')">
+              <div v-if="wrongAnswerImagesURLs.has(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')">
                 <img
                     :src="wrongAnswerImagesURLs.get(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')"
                     alt="Wrong Answer Image"
@@ -65,12 +80,14 @@
                 />
               </div>
 
-              <div v-if="currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.text !== 'no input'">
+              <div v-if="!currentQuestion.wrongAnswers.find(wa => wa.text.startsWith('no input'))?.text">
                 {{ answer }}
               </div>
             </div>
           </b-button>
         </div>
+
+        <!-- Modal for displaying large image -->
         <div v-if="showModal" class="modal" @click.self="closeModal">
           <div class="modal-content">
             <img :src="'data:image/png;base64,' + currentImageToShow?.image" alt="Large View"/>
@@ -175,7 +192,7 @@ const showAnswer = ref<string | null>(null);
 const maxRowsToShow = 7;
 const displayedCorrectResults = computed(() => correctAnsweredQuestions.value.slice(0, maxRowsToShow));
 const displayedWrongResults = computed(() => wrongAnsweredQuestions.value.slice(0, maxRowsToShow));
-const images = ref<Array<{ imageUUID: string; image: string }>>([]);
+const images = ref<Array<{ imageUUID: string; image: string; description: string }>>([]);
 const correctAnswerImage = ref<{ imageUUID: string; image: string } | null>(null);
 const showModal = ref(false);
 const currentImageToShow = ref<{ imageUUID: string; image: string } | null>(null);
@@ -218,6 +235,7 @@ const filteredImages = computed(() => {
 interface Image {
   imageUUID: string;
   image: string;
+  description: string;
 }
 
 const loadImages = async (uuid: string) => {
@@ -469,6 +487,22 @@ loadQuestions();
   font-size: 2vh;
 }
 
+
+.open-image-button {
+  position: fixed;
+  top: 10vh;
+  left: 2vw;
+  z-index: 9999;
+  padding: 0.5vw 1vw;
+  font-size: 1.5vh;
+}
+
+.answer-with-image {
+  position: relative;
+  padding: 1vw;
+}
+
+
 /* Container for the question and images */
 #question-container {
   display: flex;
@@ -496,7 +530,7 @@ loadQuestions();
   font-size: 3vh;
 }
 
-/* Styling for the images wrapper */
+/* Container für die Bilder */
 #images-wrapper {
   width: 80%;
   padding: 1vw;
@@ -507,12 +541,30 @@ loadQuestions();
   margin-top: 2vw;
 }
 
-/* Styling for each image */
 .image-box {
-  width: 20%; /* Images are now smaller */
-  margin-bottom: 1vw;
+  width: 30%;
+  height: 35vh;
+  margin-bottom: 2vw;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
+
+.image-box img {
+  width: 100%;
+  height: 80%;
+  object-fit: contain;
+  margin-bottom: 1vw;
+}
+
+.image-box .image-text {
+  font-size: 2vh;
+  color: #000;
+  margin-top: 0.5vw;
+}
+
 
 /* Styling for the feedback */
 #feedback {
@@ -705,23 +757,43 @@ loadQuestions();
 }
 
 .modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
 }
 
-.modal-content img {
-  max-width: 80%;
-  max-height: 80%;
-  margin: auto;
-  border-radius: 8px;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 80vw;
+  max-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
+.modal-content img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+
+.clickable-image {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.clickable-image:hover {
+  transform: scale(1.1);
+}
+
 </style>
