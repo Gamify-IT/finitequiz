@@ -21,7 +21,6 @@
             <h2 v-if="currentQuestion.text">{{ currentQuestion.text }}</h2>
           </div>
         </div>
-          <div class="modal-content">
         <!-- Images below the question -->
         <div id="images-wrapper" v-if="filteredImages.length > 0">
           <div
