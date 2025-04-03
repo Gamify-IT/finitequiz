@@ -1,6 +1,7 @@
 <template>
   <div>
     <!-- Progress bar to show how much progress the player has made -->
+    <div id="coin-container"></div>
     <div class="progress">
       <div
           name="progress-bar"
@@ -12,28 +13,22 @@
           :aria-valuemax="initialQuestionCount"
       ></div>
     </div>
-
     <!-- Display current question and answers if available -->
-    <div v-if="currentQuestion">
+    <div  v-if="currentQuestion">
       <div id="question-container">
-        <!-- Question text -->
         <div id="question-wrapper">
           <div id="question">
             <h2 v-if="currentQuestion.text">{{ currentQuestion.text }}</h2>
           </div>
         </div>
-        <div v-if="showModal" class="modal" @click.self="closeModal">
           <div class="modal-content">
-            <img :src="'data:image/png;base64,' + currentImageToShow?.image" alt="Large View"/>
-          </div>
-        </div>
-
         <!-- Images below the question -->
         <div id="images-wrapper" v-if="filteredImages.length > 0">
           <div
               v-for="(imageDTO) in filteredImages"
               :key="imageDTO.imageUUID"
-              class="image-box">
+              class="image-box"
+          >
             <img
                 v-if="imageDTO.image"
                 :src="'data:image/png;base64,' + imageDTO.image"
@@ -46,7 +41,6 @@
             </p>
           </div>
         </div>
-
         <!-- Answer options below the images -->
         <div id="answers-list">
           <b-button
@@ -60,41 +54,38 @@
               @mouseover="showAnswer = answer"
               @mouseleave="showAnswer = null"
           >
-            <!-- Correct answer with image -->
             <!-- Correct Answer Section -->
-            <div v-if="answer === currentQuestion.rightAnswer[1]" class="answer-with-image">
-              <div v-if="currentCorrectAnswerImage?.image" class="image-container">
-                <img :src="'data:image/png;base64,' + currentCorrectAnswerImage.image" alt="Correct Answer Image" class="answer-image"/>
-              </div>
-              <div v-if="currentQuestion.rightAnswer[0] !== 'no input'">
-                {{ currentQuestion.rightAnswer[0] }}
-              </div>
-            </div>
-            <!-- Open Image button placed outside of the box, aligned to the bottom-right corner -->
-            <div>
-              <div v-if="wrongAnswerImagesURLs.has(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')">
-                <img
-                    :src="wrongAnswerImagesURLs.get(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')"
-                    alt="Wrong Answer Image"
-                    class="answer-image"
-                />
-              </div>
-
-              <div v-if="!currentQuestion.wrongAnswers.find(wa => wa.text.startsWith('no input'))?.text">
-                {{ answer }}
-              </div>
+            <div class="answer-container">
+              <template v-if="answer === currentQuestion.rightAnswer[1]">
+                <div v-if="currentCorrectAnswerImage" class="image-container">
+                  <img
+                      :src="'data:image/png;base64,' + currentCorrectAnswerImage"
+                      alt="Correct Answer Image"
+                      class="answer-image"
+                  />
+                </div>
+                <div v-if="currentQuestion.rightAnswer[0] !== 'no input'" class="text-container">
+                  {{ currentQuestion.rightAnswer[0] }}
+                </div>
+              </template>
+              <!-- Wrong Answer Section -->
+              <template v-else>
+                <div
+                    v-if="wrongAnswerImagesURLs.has(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')"
+                    class="image-container"
+                >
+                  <img
+                      :src="wrongAnswerImagesURLs.get(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')"
+                      alt="Wrong Answer Image"
+                      class="answer-image"
+                  />
+                </div>
+                <div v-if="answer && !answer.startsWith('no input')" class="text-container">{{ answer }}</div>
+              </template>
             </div>
           </b-button>
         </div>
-
-        <!-- Modal for displaying large image -->
-        <div v-if="showModal" class="modal" @click.self="closeModal">
-          <div class="modal-content">
-            <img :src="'data:image/png;base64,' + currentImageToShow?.image" alt="Large View"/>
-          </div>
-        </div>
       </div>
-
       <!-- Feedback section -->
       <div id="feedback">
         <h1>
@@ -103,10 +94,8 @@
         </h1>
       </div>
     </div>
-
     <!-- Show loading spinner when waiting for data -->
     <div v-if="loading" class="loader"></div>
-
     <!-- End screen with results when the game ends -->
     <div id="end-text-wrapper" v-if="showEndscreen">
       <div v-if="!error" class="end-text">
@@ -122,7 +111,6 @@
         <p v-if="store.state.score <= 50">Don't give up! You will get there!</p>
         <p v-else-if="store.state.score <= 70">Good job!</p>
         <p v-else>Wow! Congratulations!</p>
-
         <!-- Display results summary -->
         <div class="results">
           <h2>Results Summary:</h2>
@@ -132,19 +120,16 @@
             <thead>
             <tr>
               <th>Question</th>
-              <th>Your Answer</th>
               <th>Result</th>
             </tr>
             </thead>
             <tbody>
             <tr v-for="(result, index) in displayedCorrectResults" :key="'correct' + index">
               <td>{{ result.question.text }}</td>
-              <td>{{ result.answer }}</td>
               <td><span class="result-icon yellow">&#10003;</span></td>
             </tr>
             <tr v-for="(result, index) in displayedWrongResults" :key="'wrong' + index">
               <td>{{ result.question.text }}</td>
-              <td>{{ result.answer }}</td>
               <td><span class="result-icon red">&#10008;</span></td>
             </tr>
             </tbody>
@@ -223,7 +208,7 @@ const currentImage = computed(() => {
 
 const currentCorrectAnswerImage = computed(() => {
   if (!currentQuestion.value || !currentQuestion.value.rightAnswer[0]) return null;
-  return correctAnswerImage.value;
+  return correctAnswerImage.value?.image;
 });
 const filteredImages = computed(() => {
   if (!currentQuestion.value) return [];
@@ -232,12 +217,19 @@ const filteredImages = computed(() => {
   );
 });
 
+/**
+ * Represents an image with a unique identifier, the image URL, and a description.
+ */
 interface Image {
   imageUUID: string;
   image: string;
   description: string;
 }
 
+/**
+ * Load images for a given UUID
+ * @param uuid the UUID of the question to load images for
+ */
 const loadImages = async (uuid: string) => {
   try {
     const response = await getImageByUUID(uuid);
@@ -255,7 +247,11 @@ const loadImages = async (uuid: string) => {
   }
 };
 
-
+/**
+ * Loads questions from the server based on the configuration ID from the URL.
+ * It fetches the questions, stores them, loads related images, and initiates the next question.
+ * In case of an error, it logs the error and sets an error message.
+ */
 async function loadQuestions() {
   let locationArray = window.location.toString().split("/");
   configurationId.value = locationArray[locationArray.length - 1];
@@ -363,7 +359,9 @@ function getCurrentTimeInSeconds() {
 }
 
 /**
- * Randomly choose next question
+ * Moves to the next question: Selects a random question, shuffles answers, and loads relevant images.
+ * If no questions are left, calculates and sends the game result.
+ * Displays the end screen or an error message.
  */
 async function nextQuestion() {
   buttonsDisabled.value = false;
@@ -432,6 +430,10 @@ async function playSound(pathToAudioFile: string) {
   sound.play();
 }
 
+/**
+ * Fetch and load the correct answer image based on the UUID
+ * @param uuid UUID of the correct answer's image
+ */
 const loadCorrectAnswerImage = async (uuid: string) => {
   try {
     const response = await getImageByUUID(uuid);
@@ -445,16 +447,28 @@ const loadCorrectAnswerImage = async (uuid: string) => {
   }
 };
 
+/**
+ * Opens the modal with the clicked image
+ * @param imageDTO The image data to show in the modal
+ */
 function openModal(imageDTO: { imageUUID: string; image: string }) {
   currentImageToShow.value = imageDTO;
   showModal.value = true;
 }
 
+
+/**
+ * Closes the modal and clears the displayed image
+ */
 function closeModal() {
   showModal.value = false;
   currentImageToShow.value = null;
 }
 
+/**
+ * Load the wrong answer image for a given UUID
+ * @param uuid UUID of the wrong answer's image
+ */
 const loadWrongAnswerImage = async (uuid: string) => {
   try {
     const response = await getImageByUUID(uuid);
@@ -471,7 +485,8 @@ loadQuestions();
 </script>
 
 <style scoped>
-/* Styling for the final text paragraphs */
+
+/* Styling for the end text paragraphs */
 .end-text p:first-of-type,
 .end-text p:nth-of-type(2) {
   margin-top: 2cm;
@@ -482,65 +497,54 @@ loadQuestions();
   margin-left: 2vw;
   margin-top: 1vw;
   float: left;
-  height: 10vh;
+  height: 25vh;
   width: 47vw;
   font-size: 2vh;
-}
-
-
-.open-image-button {
-  position: fixed;
-  top: 10vh;
-  left: 2vw;
-  z-index: 9999;
-  padding: 0.5vw 1vw;
-  font-size: 1.5vh;
-}
-
-.answer-with-image {
-  position: relative;
-  padding: 1vw;
-}
-
-
-/* Container for the question and images */
-#question-container {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
-  margin-top: 2vw;
-  width: 100%;
+  justify-content: center;
+  text-align: left;
 }
 
-/* Styling for the question wrapper */
-#question-wrapper {
-  width: 80%;
-  padding: 1vw;
-  border: 1px solid black;
-  height: 20vh;
+/* Container for the content of an answer */
+.answer-container {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0;
 }
 
-/* Styling for the question text */
-#question {
-  text-align: center;
-  font-size: 3vh;
+/* Styling for the answer image */
+.answer-image {
+  max-width: 150px;
+  max-height: 150px;
+  object-fit: contain;
+  border-radius: 5px;
 }
 
-/* Container für die Bilder */
+/* Styling for the answer text container */
+.text-container {
+  flex-grow: 1;
+  text-align: left;
+  font-size: 2vh;
+  line-height: 1.5;
+}
+
+/* Hover effect for answer images */
+.answer img:hover {
+  transform: scale(5.0);
+}
+
+/* Styling for the images wrapper */
 #images-wrapper {
-  width: 80%;
-  padding: 1vw;
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
   gap: 1vw;
-  margin-top: 2vw;
+  justify-content: center;
 }
 
+/* Styling for the individual image boxes */
 .image-box {
   width: 30%;
   height: 35vh;
@@ -552,72 +556,45 @@ loadQuestions();
   align-items: center;
 }
 
+/* Styling for the images inside the image boxes */
 .image-box img {
   width: 100%;
-  height: 80%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Ensuring images are properly displayed in the image box */
+.image-box img {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   margin-bottom: 1vw;
 }
 
-.image-box .image-text {
-  font-size: 2vh;
-  color: #000;
-  margin-top: 0.5vw;
-}
-
-
-/* Styling for the feedback */
+/* Styling for the feedback section */
 #feedback {
   margin-top: 2vw;
   width: 100%;
   text-align: center;
 }
 
-/* Styling for the answer buttons */
-.answer {
-  margin-left: 2vw;
-  margin-top: 1vw;
-  float: left;
-  height: 10vh;
-  width: 47vw;
-  font-size: 2vh;
-}
-
-.answer-with-image {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 10px;
-}
-
-.answer-image {
-  width: 90px;
-  height: 90px;
-  margin-right: 10px;
-}
-
-
 /* Styling for the progress bar */
 .progress-bar {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
-  -webkit-box-shadow: inset 0 0 0 2px #212529 !important;
-  -moz-box-shadow: inset 0 0 0 2px #212529 !important;
   box-shadow: inset 0 0 0 2px #212529 !important;
   border: none !important;
 }
 
-/* Styling for the entire progress bar container */
+/* Styling for the progress container */
 .progress {
   border-radius: 0 !important;
   background-color: white !important;
-  -webkit-box-shadow: inset 0 0 0 2px #212529 !important;
-  -moz-box-shadow: inset 0 0 0 2px #212529 !important;
   box-shadow: inset 0 0 0 2px #212529 !important;
   border: none !important;
 }
 
-/* Styling for the end screen container */
+/* Styling for the end screen wrapper */
 #end-text-wrapper {
   height: 100vh;
   width: 100%;
@@ -650,13 +627,13 @@ loadQuestions();
   animation: spin 2s linear infinite;
 }
 
-/* Styling for golden text */
+/* Styling for the gold-colored text */
 .gold-text {
   color: gold;
   font-weight: bold;
 }
 
-/* Container for the results table */
+/* Styling for the results table container */
 .results-table-container {
   margin: 0 auto;
   width: 80%;
@@ -665,14 +642,14 @@ loadQuestions();
   border: 1px solid white;
 }
 
-/* Styling for the results summary area */
+/* Styling for the results section */
 .results {
   margin-top: 20px;
   text-align: center;
   color: white;
 }
 
-/* Styling for the results table header */
+/* Styling for the results table heading */
 .results h2 {
   font-size: 4vh;
 }
@@ -686,7 +663,7 @@ loadQuestions();
   opacity: 0.75;
 }
 
-/* Styling for table headers and cells */
+/* Styling for table headers and cells in the results table */
 .results-table th,
 .results-table td {
   border: 1px solid white;
@@ -697,15 +674,7 @@ loadQuestions();
   text-align: center;
 }
 
-.results-table-container {
-  margin: 0 auto;
-  width: 80%;
-  max-height: 50vh;
-  overflow-y: auto;
-  border: 1px solid white;
-}
-
-/* Icon styles for results (yellow for correct, red for incorrect) */
+/* Styling for result icons (check marks and crosses) in the results table */
 .results-table .result-icon.yellow {
   color: yellow;
   font-size: 1.8vh;
@@ -720,35 +689,23 @@ loadQuestions();
   line-height: 1.8;
 }
 
-/* Green bold text for score display */
+/* Styling for the green-bold text */
 .green-bold {
   color: #6a2900;
   font-weight: bold;
 }
 
-/* Styling for the answer list container */
+/* Styling for the answers list container */
 #answers-list {
   position: relative;
 }
 
-/* Info display for each answer (shown on hover) */
-.answer-info {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: none;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 10px;
-  border-radius: 5px;
-}
-
-/* Show info when hovering over an answer */
+/* Styling for the hover effect on answer buttons */
 .answer:hover .answer-info {
   display: block;
 }
 
-/* Text with an outline effect */
+/* Styling for the outlined text (with a text shadow) */
 .outlined-text {
   text-shadow: -1px -1px 0 #fff,
   1px -1px 0 #fff,
@@ -756,44 +713,48 @@ loadQuestions();
   1px 1px 0 #fff;
 }
 
-.modal {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 80vw;
-  max-height: 80vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
+/* Styling for the modal content images */
 .modal-content img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
 }
 
-
+/* Styling for clickable images (on hover they enlarge) */
 .clickable-image {
   cursor: pointer;
   transition: transform 0.2s;
 }
 
 .clickable-image:hover {
-  transform: scale(1.1);
+  transform: scale(5.0);
+}
+
+/* Styling for the question container */
+#question-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2vw;
+  width: 100%;
+}
+
+/* Styling for the question wrapper */
+#question-wrapper {
+  width: 80%;
+  padding: 1vw;
+  border: 1px solid black;
+  height: 20vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Styling for the question text */
+#question {
+  text-align: center;
+  font-size: 3vh;
 }
 
 </style>
