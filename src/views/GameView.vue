@@ -4,17 +4,17 @@
     <div id="coin-container"></div>
     <div class="progress">
       <div
-          name="progress-bar"
-          class="progress-bar"
-          role="progressbar"
-          :style="{ width: progressBarWidth + '%' }"
-          :aria-valuenow="progressBarValue"
-          aria-valuemin="0"
-          :aria-valuemax="initialQuestionCount"
+        name="progress-bar"
+        class="progress-bar"
+        role="progressbar"
+        :style="{ width: progressBarWidth + '%' }"
+        :aria-valuenow="progressBarValue"
+        aria-valuemin="0"
+        :aria-valuemax="initialQuestionCount"
       ></div>
     </div>
     <!-- Display current question and answers if available -->
-    <div  v-if="currentQuestion">
+    <div v-if="currentQuestion">
       <div id="question-container">
         <div id="question-wrapper">
           <div id="question">
@@ -24,16 +24,21 @@
         <!-- Images below the question -->
         <div id="images-wrapper" v-if="filteredImages.length > 0">
           <div
-              v-for="(imageDTO) in filteredImages"
-              :key="imageDTO.imageUUID"
-              class="image-box"
+            v-for="imageDTO in filteredImages"
+            :key="imageDTO.imageUUID"
+            class="image-box"
           >
             <img
-                v-if="imageDTO.image"
-                :src="'data:image/png;base64,' + imageDTO.image"
-                alt="Image"
-                class="clickable-image"
-                @click="openModal({ imageUUID: imageDTO.imageUUID, image: imageDTO.image })"
+              v-if="imageDTO.image"
+              :src="'data:image/png;base64,' + imageDTO.image"
+              alt="Image"
+              class="clickable-image"
+              @click="
+                openModal({
+                  imageUUID: imageDTO.imageUUID,
+                  image: imageDTO.image,
+                })
+              "
             />
             <p v-if="imageDTO.description" class="image-description">
               {{ imageDTO.description }}
@@ -43,43 +48,62 @@
         <!-- Answer options below the images -->
         <div id="answers-list">
           <b-button
-              v-for="answer in currentAnswers"
-              :key="answer"
-              class="answer"
-              variant="outline-info"
-              :name="'buttonId' + answer"
-              :disabled="buttonsDisabled"
-              @click="chooseAnswer($event, answer)"
-              @mouseover="showAnswer = answer"
-              @mouseleave="showAnswer = null"
+            v-for="answer in currentAnswers"
+            :key="answer"
+            class="answer"
+            variant="outline-info"
+            :name="'buttonId' + answer"
+            :disabled="buttonsDisabled"
+            @click="chooseAnswer($event, answer)"
+            @mouseover="showAnswer = answer"
+            @mouseleave="showAnswer = null"
           >
             <!-- Correct Answer Section -->
             <div class="answer-container">
               <template v-if="answer === currentQuestion.rightAnswer[1]">
                 <div v-if="currentCorrectAnswerImage" class="image-container">
                   <img
-                      :src="'data:image/png;base64,' + currentCorrectAnswerImage"
-                      alt="Correct Answer Image"
-                      class="answer-image"
+                    :src="'data:image/png;base64,' + currentCorrectAnswerImage"
+                    alt="Correct Answer Image"
+                    class="answer-image"
                   />
                 </div>
+
                 <div v-if="currentQuestion.rightAnswer[1] !== 'no input'" class="text-container">
                   {{ currentQuestion.rightAnswer[1] }}
+
                 </div>
               </template>
               <!-- Wrong Answer Section -->
               <template v-else>
                 <div
-                    v-if="wrongAnswerImagesURLs.has(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')"
-                    class="image-container"
+                  v-if="
+                    wrongAnswerImagesURLs.has(
+                      currentQuestion.wrongAnswers.find(
+                        (wa) => wa.text === answer
+                      )?.uuid ?? ''
+                    )
+                  "
+                  class="image-container"
                 >
                   <img
-                      :src="wrongAnswerImagesURLs.get(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')"
-                      alt="Wrong Answer Image"
-                      class="answer-image"
+                    :src="
+                      wrongAnswerImagesURLs.get(
+                        currentQuestion.wrongAnswers.find(
+                          (wa) => wa.text === answer
+                        )?.uuid ?? ''
+                      )
+                    "
+                    alt="Wrong Answer Image"
+                    class="answer-image"
                   />
                 </div>
-                <div v-if="answer && !answer.startsWith('no input')" class="text-container">{{ answer }}</div>
+                <div
+                  v-if="answer && !answer.startsWith('no input')"
+                  class="text-container"
+                >
+                  {{ answer }}
+                </div>
               </template>
             </div>
           </b-button>
@@ -88,8 +112,14 @@
       <!-- Feedback section -->
       <div id="feedback">
         <h1>
-          Current score: <span class="outlined-text">{{ correctAnsweredQuestions.length }}</span> /
-          <span class="outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
+          Current score:
+          <span class="outlined-text">{{
+            correctAnsweredQuestions.length
+          }}</span>
+          /
+          <span class="outlined-text">{{
+            correctAnsweredQuestions.length + wrongAnsweredQuestions.length
+          }}</span>
         </h1>
       </div>
     </div>
@@ -99,13 +129,25 @@
     <div id="end-text-wrapper" v-if="showEndscreen">
       <div v-if="!error" class="end-text">
         <p>
-          You answered <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length }}</span> of
-          <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
+          You answered
+          <span class="green-bold outlined-text">{{
+            correctAnsweredQuestions.length
+          }}</span>
+          of
+          <span class="green-bold outlined-text">{{
+            correctAnsweredQuestions.length + wrongAnsweredQuestions.length
+          }}</span>
           questions correctly.
         </p>
         <p>
-          You've earned <span class="gold-text outlined-text">{{ store.state.score }} scores</span> and
-          <span class="gold-text outlined-text">{{ store.state.rewards }} coins!</span>
+          You've earned
+          <span class="gold-text outlined-text"
+            >{{ store.state.score }} scores</span
+          >
+          and
+          <span class="gold-text outlined-text"
+            >{{ store.state.rewards }} coins!</span
+          >
         </p>
         <p v-if="store.state.score <= 50">Don't give up! You will get there!</p>
         <p v-else-if="store.state.score <= 70">Good job!</p>
@@ -117,20 +159,26 @@
         <div class="results-table-container">
           <table class="results-table">
             <thead>
-            <tr>
-              <th>Question</th>
-              <th>Result</th>
-            </tr>
+              <tr>
+                <th>Question</th>
+                <th>Result</th>
+              </tr>
             </thead>
             <tbody>
-            <tr v-for="(result, index) in displayedCorrectResults" :key="'correct' + index">
-              <td>{{ result.question.text }}</td>
-              <td><span class="result-icon yellow">&#10003;</span></td>
-            </tr>
-            <tr v-for="(result, index) in displayedWrongResults" :key="'wrong' + index">
-              <td>{{ result.question.text }}</td>
-              <td><span class="result-icon red">&#10008;</span></td>
-            </tr>
+              <tr
+                v-for="(result, index) in displayedCorrectResults"
+                :key="'correct' + index"
+              >
+                <td>{{ result.question.text }}</td>
+                <td><span class="result-icon yellow">&#10003;</span></td>
+              </tr>
+              <tr
+                v-for="(result, index) in displayedWrongResults"
+                :key="'wrong' + index"
+              >
+                <td>{{ result.question.text }}</td>
+                <td><span class="result-icon red">&#10008;</span></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -144,16 +192,20 @@
 
 /* eslint-disable */
 <script setup lang="ts">
-import {getQuestions, getVolumeLevel, postGameResult} from "@/ts/minigame-rest-client";
-import {GameResultDTO, Question, RoundResultDTO} from "@/ts/models";
-import {useToast} from "vue-toastification";
+import {
+  getQuestions,
+  getVolumeLevel,
+  postGameResult,
+} from "@/ts/minigame-rest-client";
+import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
+import { useToast } from "vue-toastification";
 import store from "@/store/index";
-import {computed, ref} from "vue";
+import { computed, ref } from "vue";
 import correctAnswerSoundSource from "@/assets/music/correct_answer_sound.wav";
 import wrongAnswerSoundSource from "@/assets/music/wrong_answer_sound.mp3";
 import finishSoundSource from "@/assets/music/finish_sound.wav";
-import {getImageByUUID} from "@/ts/minigame-rest-client";
-import {watch} from "vue";
+import { getImageByUUID } from "@/ts/minigame-rest-client";
+import { watch } from "vue";
 
 let volumeLevel: number | null = 0;
 const configurationId = ref("");
@@ -174,12 +226,22 @@ const errorText = ref("");
 const rewardsDefault = ref(0);
 const showAnswer = ref<string | null>(null);
 const maxRowsToShow = 7;
-const displayedCorrectResults = computed(() => correctAnsweredQuestions.value.slice(0, maxRowsToShow));
-const displayedWrongResults = computed(() => wrongAnsweredQuestions.value.slice(0, maxRowsToShow));
-const images = ref<Array<{ imageUUID: string; image: string; description: string }>>([]);
-const correctAnswerImage = ref<{ imageUUID: string; image: string } | null>(null);
+const displayedCorrectResults = computed(() =>
+  correctAnsweredQuestions.value.slice(0, maxRowsToShow)
+);
+const displayedWrongResults = computed(() =>
+  wrongAnsweredQuestions.value.slice(0, maxRowsToShow)
+);
+const images = ref<
+  Array<{ imageUUID: string; image: string; description: string }>
+>([]);
+const correctAnswerImage = ref<{ imageUUID: string; image: string } | null>(
+  null
+);
 const showModal = ref(false);
-const currentImageToShow = ref<{ imageUUID: string; image: string } | null>(null);
+const currentImageToShow = ref<{ imageUUID: string; image: string } | null>(
+  null
+);
 const wrongAnswerImagesURLs = ref<Map<string, string>>(new Map());
 
 /**
@@ -187,9 +249,9 @@ const wrongAnswerImagesURLs = ref<Map<string, string>>(new Map());
  */
 const progressBarWidth = computed(() => {
   return (
-      ((initialQuestionCount.value - questions.value.length) /
-          initialQuestionCount.value) *
-      100
+    ((initialQuestionCount.value - questions.value.length) /
+      initialQuestionCount.value) *
+    100
   ).toString();
 });
 
@@ -202,17 +264,22 @@ const progressBarValue = computed(() => {
 
 const currentImage = computed(() => {
   if (!currentQuestion.value || !currentQuestion.value.uuid) return null;
-  return images.value.find(image => image.imageUUID === currentQuestion.value!.uuid) || null;
+  return (
+    images.value.find(
+      (image) => image.imageUUID === currentQuestion.value!.uuid
+    ) || null
+  );
 });
 
 const currentCorrectAnswerImage = computed(() => {
-  if (!currentQuestion.value || !currentQuestion.value.rightAnswer[0]) return null;
+  if (!currentQuestion.value || !currentQuestion.value.rightAnswer[0])
+    return null;
   return correctAnswerImage.value?.image;
 });
 const filteredImages = computed(() => {
   if (!currentQuestion.value) return [];
   return images.value.filter(
-      image => image.imageUUID === currentQuestion.value?.uuid
+    (image) => image.imageUUID === currentQuestion.value?.uuid
   );
 });
 
@@ -234,8 +301,9 @@ const loadImages = async (uuid: string) => {
     const response = await getImageByUUID(uuid);
 
     if (response.data && response.data.length > 0) {
-      const newImages = response.data.filter((newImage: Image) =>
-          !images.value.some(image => image.imageUUID === newImage.imageUUID)
+      const newImages = response.data.filter(
+        (newImage: Image) =>
+          !images.value.some((image) => image.imageUUID === newImage.imageUUID)
       );
       images.value.push(...newImages);
     } else {
@@ -279,7 +347,6 @@ async function loadQuestions() {
   });
 }
 
-
 /**
  * Create audio with volume level from overworld
  * @param pathToAudioFile
@@ -304,9 +371,9 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
   buttonsDisabled.value = true;
   const buttonName = buttonTarget.currentTarget.name;
   let roundResult = new RoundResultDTO(
-      currentQuestion.value!.id,
-      currentQuestion.value!,
-      chosenAnswer
+    currentQuestion.value!.id,
+    currentQuestion.value!,
+    chosenAnswer
   );
 
   if (chosenAnswer === currentQuestion.value!.rightAnswer[1]) {
@@ -315,13 +382,13 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
     playSound(correctAnswerSoundSource);
   } else {
     const wrongAnswer = currentQuestion.value!.wrongAnswers.find(
-        (wa) => wa.text === chosenAnswer
+      (wa) => wa.text === chosenAnswer
     );
     if (wrongAnswer) {
       roundResult = new RoundResultDTO(
-          currentQuestion.value!.id,
-          currentQuestion.value!,
-          wrongAnswer.text
+        currentQuestion.value!.id,
+        currentQuestion.value!,
+        wrongAnswer.text
       );
       loadWrongAnswerImage(wrongAnswer.uuid);
     }
@@ -330,12 +397,12 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
     playSound(wrongAnswerSoundSource);
   }
   score.value =
-      correctAnsweredQuestions.value.length / initialQuestionCount.value;
+    correctAnsweredQuestions.value.length / initialQuestionCount.value;
   document.getElementsByName("progress-bar")[0].style.width =
-      progressBarWidth.value + "%";
+    progressBarWidth.value + "%";
   delay(1000)
-      .then(() => resetCurrentAnswers())
-      .then(() => nextQuestion());
+    .then(() => resetCurrentAnswers())
+    .then(() => nextQuestion());
 }
 
 /**
@@ -369,14 +436,16 @@ async function nextQuestion() {
     currentQuestion.value = questions.value[number];
     questions.value.splice(number, 1);
 
-    currentAnswers.value = currentQuestion.value.wrongAnswers.map(answer => answer.text);
+    currentAnswers.value = currentQuestion.value.wrongAnswers.map(
+      (answer) => answer.text
+    );
     currentAnswers.value.push(currentQuestion.value.rightAnswer[1]);
     currentAnswers.value = currentAnswers.value
-        .map((value) => ({value, sort: Math.random()}))
-        .sort((a, b) => a.sort - b.sort)
-        .map(({value}) => value);
+      .map((value) => ({ value, sort: Math.random() }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ value }) => value);
 
-    currentQuestion.value.wrongAnswers.forEach(wrongAnswer => {
+    currentQuestion.value.wrongAnswers.forEach((wrongAnswer) => {
       loadWrongAnswerImage(wrongAnswer.uuid);
     });
     if (currentQuestion.value.rightAnswer[0]) {
@@ -385,32 +454,31 @@ async function nextQuestion() {
   } else {
     const timeSpent = Math.ceil(getCurrentTimeInSeconds() - startTime);
     let result = new GameResultDTO(
-        configurationId.value,
-        correctAnsweredQuestions.value,
-        wrongAnsweredQuestions.value,
-        score.value,
-        initialQuestionCount.value,
-        timeSpent,
-        rewardsDefault.value
+      configurationId.value,
+      correctAnsweredQuestions.value,
+      wrongAnsweredQuestions.value,
+      score.value,
+      initialQuestionCount.value,
+      timeSpent,
+      rewardsDefault.value
     );
     resetValues();
     loading.value = true;
     postGameResult(result)
-        .then(() => {
-          loading.value = false;
-          showEndscreen.value = true;
-          playSound(finishSoundSource);
-        })
-        .catch((reason) => {
-          loading.value = false;
-          showEndscreen.value = true;
-          error.value = true;
-          errorText.value = reason.response.data.message;
-          toast.error(reason.response.data.message);
-        });
+      .then(() => {
+        loading.value = false;
+        showEndscreen.value = true;
+        playSound(finishSoundSource);
+      })
+      .catch((reason) => {
+        loading.value = false;
+        showEndscreen.value = true;
+        error.value = true;
+        errorText.value = reason.response.data.message;
+        toast.error(reason.response.data.message);
+      });
   }
 }
-
 
 /**
  * Reset fields
@@ -455,7 +523,6 @@ function openModal(imageDTO: { imageUUID: string; image: string }) {
   showModal.value = true;
 }
 
-
 /**
  * Closes the modal and clears the displayed image
  */
@@ -472,7 +539,10 @@ const loadWrongAnswerImage = async (uuid: string) => {
   try {
     const response = await getImageByUUID(uuid);
     if (response.data && response.data.length > 0) {
-      wrongAnswerImagesURLs.value.set(uuid, 'data:image/png;base64,' + response.data[0].image);
+      wrongAnswerImagesURLs.value.set(
+        uuid,
+        "data:image/png;base64," + response.data[0].image
+      );
     } else {
       console.log("No image found for UUID:", uuid);
     }
@@ -484,7 +554,6 @@ loadQuestions();
 </script>
 
 <style scoped>
-
 /* Styling for the end text paragraphs */
 .end-text p:first-of-type,
 .end-text p:nth-of-type(2) {
@@ -532,7 +601,9 @@ loadQuestions();
 
 /* Hover effect for answer images */
 .answer img:hover {
+
   transform: scale(2.3);
+
 }
 
 #images-wrapper {
@@ -614,7 +685,7 @@ loadQuestions();
   display: flex;
   justify-content: center;
   align-items: center;
-  background-image: url('@/assets/wald.jpg');
+  background-image: url("@/assets/wald.jpg");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
@@ -720,10 +791,8 @@ loadQuestions();
 
 /* Styling for the outlined text (with a text shadow) */
 .outlined-text {
-  text-shadow: -1px -1px 0 #fff,
-  1px -1px 0 #fff,
-  -1px 1px 0 #fff,
-  1px 1px 0 #fff;
+  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff,
+    1px 1px 0 #fff;
 }
 
 /* Styling for the modal content images */
@@ -740,7 +809,9 @@ loadQuestions();
 }
 
 .clickable-image:hover {
+
   transform: scale(1.3);
+
 }
 
 /* Styling for the question container */
@@ -769,5 +840,4 @@ loadQuestions();
   text-align: center;
   font-size: 3vh;
 }
-
 </style>

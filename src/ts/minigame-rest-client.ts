@@ -6,8 +6,6 @@ import config from "@/config";
 import { GameResultDTO } from "@/ts/models";
 import store from "@/store/index";
 
-
-
 /**
  * Fetches the questions for a specific configuration ID.
  *
@@ -28,7 +26,7 @@ export function getQuestions(configId: string): Promise<AxiosResponse> {
  */
 export function getVolumeLevel(configId: string): Promise<AxiosResponse> {
   return axios.get(
-    `${config.apiBaseUrl}/configurations/` + configId + '/volume'
+    `${config.apiBaseUrl}/configurations/` + configId + "/volume"
   );
 }
 
@@ -39,16 +37,18 @@ export function getVolumeLevel(configId: string): Promise<AxiosResponse> {
  * @returns A promise that resolves once the result has been successfully posted.
  */
 export async function postGameResult(
-  gameResultDTO: GameResultDTO 
+  gameResultDTO: GameResultDTO
 ): Promise<void> {
   console.log("Sending GameResultDTO to backend:", gameResultDTO); // Log the data being sent
   try {
-    const response = await axios.post(`${config.apiBaseUrl}/results`, gameResultDTO);
+    const response = await axios.post(
+      `${config.apiBaseUrl}/results`,
+      gameResultDTO
+    );
     console.log("Received response from backend:", response.data); // Log the response from backend
     const returnedResult = fromDTO(response.data);
-    store.commit('setScore', returnedResult.score);
-    store.commit('setRewards', returnedResult.rewards);
-
+    store.commit("setScore", returnedResult.score);
+    store.commit("setRewards", returnedResult.rewards);
   } catch (error) {
     console.error("Error sending GameResultDTO:", error); // Log any error
     throw error; // Rethrow the error to be handled by the caller
@@ -69,7 +69,8 @@ export function fromDTO(dto: any): GameResultDTO {
     dto.score,
     dto.questionCount,
     dto.timeSpent,
-    dto.rewards);
+    dto.rewards
+  );
 }
 
 /**

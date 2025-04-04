@@ -68,5 +68,3 @@ export class GameResultDTO {
     public rewards: number
   ) {}
 }
-
-

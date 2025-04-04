@@ -16,7 +16,11 @@
           Restart
         </b-button>
         <!-- Close button with click handler to close the game -->
-        <b-button class="nav-buttons" id="close-button" v-on:click="handleCloseGame">
+        <b-button
+          class="nav-buttons"
+          id="close-button"
+          v-on:click="handleCloseGame"
+        >
           Close
         </b-button>
       </nav>
@@ -33,14 +37,13 @@ import GameView from "@/views/GameView";
 import { onMounted, onUnmounted, watch } from "vue";
 import backgroundMusicSource from "@/assets/music/background_music.mp3";
 import clickSoundSource from "@/assets/music/click_sound.mp3";
-import {getVolumeLevel} from "@/ts/minigame-rest-client";
+import { getVolumeLevel } from "@/ts/minigame-rest-client";
 import { computed, ref } from "vue";
 
-let volumeLevel : number|null = 0;
+let volumeLevel: number | null = 0;
 const backgroundMusic = new Audio(backgroundMusicSource);
 const clickSound = new Audio(clickSoundSource);
 const configurationId = ref("");
-
 
 /**
  * Reload the page
@@ -59,7 +62,7 @@ function closeGame() {
 /**
  * Play click sound
  */
-function playClickSound(){
+function playClickSound() {
   clickSound.play();
 }
 
@@ -68,9 +71,9 @@ function playClickSound(){
  */
 async function handleCloseGame() {
   await playClickSound();
-    setTimeout(() => {
-      closeGame();
-    }, 500);
+  setTimeout(() => {
+    closeGame();
+  }, 500);
 }
 
 /**
@@ -78,9 +81,9 @@ async function handleCloseGame() {
  */
 async function handleReloadPage() {
   await playClickSound();
-    setTimeout(() => {
-      reloadPage();
-    }, 500);
+  setTimeout(() => {
+    reloadPage();
+  }, 500);
 }
 
 /**
@@ -101,7 +104,7 @@ function adjustVolume(volume: number | null) {
 }
 
 /**
- * Get volume level 
+ * Get volume level
  */
 async function fetchAndUpdateVolume() {
   try {
@@ -113,7 +116,7 @@ async function fetchAndUpdateVolume() {
     backgroundMusic.play();
     backgroundMusic.loop = true;
   } catch (error) {
-    console.error('Error fetching volume level:', error);
+    console.error("Error fetching volume level:", error);
   }
 }
 
@@ -124,17 +127,20 @@ onMounted(async () => {
   await fetchAndUpdateVolume();
 });
 
-watch(() => configurationId.value, async (value) => {
-  if (value) {
-    await fetchAndUpdateVolume();
-  } 
-}, { immediate: true });
+watch(
+  () => configurationId.value,
+  async (value) => {
+    if (value) {
+      await fetchAndUpdateVolume();
+    }
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => {
   backgroundMusic.pause();
   backgroundMusic.currentTime = 0;
 });
-
 </script>
 <style scoped>
 /* Styling for the navigation bar */
