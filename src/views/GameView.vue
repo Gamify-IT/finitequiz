@@ -63,8 +63,8 @@
                       class="answer-image"
                   />
                 </div>
-                <div v-if="currentQuestion.rightAnswer[0] !== 'no input'" class="text-container">
-                  {{ currentQuestion.rightAnswer[0] }}
+                <div v-if="currentQuestion.rightAnswer[1] !== 'no input'" class="text-container">
+                  {{ currentQuestion.rightAnswer[1] }}
                 </div>
               </template>
               <!-- Wrong Answer Section -->
@@ -516,9 +516,9 @@ loadQuestions();
 
 /* Styling for the answer image */
 .answer-image {
-  max-width: 150px;
-  max-height: 150px;
-  object-fit: contain;
+  max-width: 300px;
+  max-height: 300px;
+  object-fit: cover;
   border-radius: 5px;
 }
 
@@ -532,10 +532,9 @@ loadQuestions();
 
 /* Hover effect for answer images */
 .answer img:hover {
-  transform: scale(5.0);
+  transform: scale(2.3);
 }
 
-/* Styling for the images wrapper */
 #images-wrapper {
   display: flex;
   flex-wrap: wrap;
@@ -543,32 +542,47 @@ loadQuestions();
   justify-content: center;
 }
 
-/* Styling for the individual image boxes */
 .image-box {
-  width: 30%;
-  height: 35vh;
+  width: 22%;
+  height: 45vh;
   margin-bottom: 2vw;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  transition: all 0.3s ease-in-out;
 }
 
-/* Styling for the images inside the image boxes */
+#images-wrapper > .image-box {
+  width: calc(25% - 1vw);
+}
+
+@media (max-width: 1200px) {
+  #images-wrapper > .image-box {
+    width: calc(33% - 1vw);
+  }
+}
+
+@media (max-width: 800px) {
+  #images-wrapper > .image-box {
+    width: calc(50% - 1vw);
+  }
+}
+
+@media (max-width: 500px) {
+  #images-wrapper > .image-box {
+    width: 100%;
+  }
+}
+
 .image-box img {
   width: 100%;
   height: auto;
   object-fit: contain;
-}
-
-/* Ensuring images are properly displayed in the image box */
-.image-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
   margin-bottom: 1vw;
 }
+
 
 /* Styling for the feedback section */
 #feedback {
@@ -726,7 +740,7 @@ loadQuestions();
 }
 
 .clickable-image:hover {
-  transform: scale(5.0);
+  transform: scale(1.3);
 }
 
 /* Styling for the question container */
