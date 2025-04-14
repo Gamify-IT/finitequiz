@@ -13,8 +13,9 @@
           :aria-valuemax="initialQuestionCount"
       ></div>
     </div>
+
     <!-- Display current question and answers if available -->
-    <div  v-if="currentQuestion">
+    <div v-if="currentQuestion">
       <div id="question-container">
         <div id="question-wrapper">
           <div id="question">
@@ -33,13 +34,27 @@
                 :src="'data:image/png;base64,' + imageDTO.image"
                 alt="Image"
                 class="clickable-image"
-                @click="openModal({ imageUUID: imageDTO.imageUUID, image: imageDTO.image })"
+                @click="openZoom('data:image/png;base64,' + imageDTO.image)"
             />
             <p v-if="imageDTO.description" class="image-description">
               {{ imageDTO.description }}
             </p>
           </div>
         </div>
+        <!-- Zoomed Image Modal -->
+        <div v-if="zoomImage" class="image-modal" @click.self="closeZoom">
+          <div class="zoom-container">
+            <!-- Zoomed Image -->
+            <img :src="zoomImage" alt="Zoomed" :style="{ width: zoomDimensions.width + 'px', height: zoomDimensions.height + 'px' }" />
+
+            <!-- Zoom Buttons -->
+            <div class="zoom-buttons">
+              <button @click="zoomIn" class="zoom-button">+</button>
+              <button @click="zoomOut" class="zoom-button">-</button>
+            </div>
+          </div>
+        </div>
+
         <!-- Answer options below the images -->
         <div id="answers-list">
           <b-button
@@ -61,6 +76,8 @@
                       :src="'data:image/png;base64,' + currentCorrectAnswerImage"
                       alt="Correct Answer Image"
                       class="answer-image"
+                      @click.stop="openZoom('data:image/png;base64,' + currentCorrectAnswerImage)"
+
                   />
                 </div>
                 <div v-if="currentQuestion.rightAnswer[1] !== 'no input'" class="text-container">
@@ -77,6 +94,8 @@
                       :src="wrongAnswerImagesURLs.get(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')"
                       alt="Wrong Answer Image"
                       class="answer-image"
+                      @click.stop="openZoom(wrongAnswerImagesURLs.get(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '') || '')"
+
                   />
                 </div>
                 <div v-if="answer && !answer.startsWith('no input')" class="text-container">{{ answer }}</div>
@@ -142,6 +161,7 @@
   </div>
 </template>
 
+
 /* eslint-disable */
 <script setup lang="ts">
 import {getQuestions, getVolumeLevel, postGameResult} from "@/ts/minigame-rest-client";
@@ -181,6 +201,51 @@ const correctAnswerImage = ref<{ imageUUID: string; image: string } | null>(null
 const showModal = ref(false);
 const currentImageToShow = ref<{ imageUUID: string; image: string } | null>(null);
 const wrongAnswerImagesURLs = ref<Map<string, string>>(new Map());
+const zoomImage = ref<string | null>(null);
+const zoomLevel = ref(2.5);
+const zoomWidth = ref(450);
+const zoomHeight = ref(350);
+
+const zoomDimensions = computed(() => {
+  return {
+    width: zoomWidth.value * zoomLevel.value,
+    height: zoomHeight.value * zoomLevel.value
+  };
+});
+
+/**
+ * Opens the zoom view with the given image URL
+ * @param imageUrl The URL of the image to display in zoom view
+ */
+function openZoom(imageUrl: string) {
+  zoomImage.value = imageUrl;
+}
+
+/**
+ * Closes the zoom view and resets the zoom level
+ */
+function closeZoom() {
+  zoomImage.value = null;
+  zoomLevel.value = 1;
+}
+
+/**
+ * Increases the zoom level by 0.4, up to a maximum of 5
+ */
+function zoomIn() {
+  if (zoomLevel.value < 5) {
+    zoomLevel.value += 0.4;
+  }
+}
+
+/**
+ * Decreases the zoom level by 0.4, down to a minimum of 0.5
+ */
+function zoomOut() {
+  if (zoomLevel.value > 0.5) {
+    zoomLevel.value -= 0.4;
+  }
+}
 
 /**
  * Compute progress bar width
@@ -200,15 +265,11 @@ const progressBarValue = computed(() => {
   return initialQuestionCount.value - questions.value.length;
 });
 
-const currentImage = computed(() => {
-  if (!currentQuestion.value || !currentQuestion.value.uuid) return null;
-  return images.value.find(image => image.imageUUID === currentQuestion.value!.uuid) || null;
-});
-
 const currentCorrectAnswerImage = computed(() => {
   if (!currentQuestion.value || !currentQuestion.value.rightAnswer[0]) return null;
   return correctAnswerImage.value?.image;
 });
+
 const filteredImages = computed(() => {
   if (!currentQuestion.value) return [];
   return images.value.filter(
@@ -380,7 +441,7 @@ async function nextQuestion() {
       loadWrongAnswerImage(wrongAnswer.uuid);
     });
     if (currentQuestion.value.rightAnswer[0]) {
-      await loadCorrectAnswerImage(currentQuestion.value.rightAnswer[1]);
+      await loadCorrectAnswerImage(currentQuestion.value.rightAnswer[0]);
     }
   } else {
     const timeSpent = Math.ceil(getCurrentTimeInSeconds() - startTime);
@@ -528,11 +589,6 @@ loadQuestions();
   text-align: left;
   font-size: 2vh;
   line-height: 1.5;
-}
-
-/* Hover effect for answer images */
-.answer img:hover {
-  transform: scale(2.3);
 }
 
 #images-wrapper {
@@ -713,10 +769,6 @@ loadQuestions();
   position: relative;
 }
 
-/* Styling for the hover effect on answer buttons */
-.answer:hover .answer-info {
-  display: block;
-}
 
 /* Styling for the outlined text (with a text shadow) */
 .outlined-text {
@@ -733,15 +785,6 @@ loadQuestions();
   object-fit: contain;
 }
 
-/* Styling for clickable images (on hover they enlarge) */
-.clickable-image {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.clickable-image:hover {
-  transform: scale(1.3);
-}
 
 /* Styling for the question container */
 #question-container {
@@ -768,6 +811,51 @@ loadQuestions();
 #question {
   text-align: center;
   font-size: 3vh;
+}
+
+.image-modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  padding: 20px;
+}
+
+.zoom-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-buttons {
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+}
+
+.zoom-button {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid #fff;
+  border-radius: 5px;
+  font-size: 20px;
+  padding: 5px;
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+.zoom-button:hover {
+  background-color: rgba(255, 255, 255, 1);
+}
+
+.image-modal img {
+  max-width: 90vw;
+  max-height: 90vh;
 }
 
 </style>
