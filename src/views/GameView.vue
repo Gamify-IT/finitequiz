@@ -28,6 +28,13 @@
               v-for="(imageDTO) in filteredImages"
               :key="imageDTO.imageUUID"
               class="image-box"
+              :style="{
+    width: filteredImages.length === 1
+      ? '80%'
+      : filteredImages.length === 2
+      ? '40%'
+      : ''
+  }"
           >
             <img
                 v-if="imageDTO.image"
@@ -45,7 +52,8 @@
         <div v-if="zoomImage" class="image-modal" @click.self="closeZoom">
           <div class="zoom-container">
             <!-- Zoomed Image -->
-            <img :src="zoomImage" alt="Zoomed" :style="{ width: zoomDimensions.width + 'px', height: zoomDimensions.height + 'px' }" />
+            <img :src="zoomImage" alt="Zoomed"
+                 :style="{ width: zoomDimensions.width + 'px', height: zoomDimensions.height + 'px' }"/>
 
             <!-- Zoom Buttons -->
             <div class="zoom-buttons">
@@ -119,7 +127,9 @@
       <div v-if="!error" class="end-text">
         <p>
           You answered <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length }}</span> of
-          <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
+          <span class="green-bold outlined-text">{{
+              correctAnsweredQuestions.length + wrongAnsweredQuestions.length
+            }}</span>
           questions correctly.
         </p>
         <p>
@@ -571,9 +581,29 @@ loadQuestions();
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 20px;
   margin: 10px 0;
+  position: relative;
 }
+
+.answer-container .image-container {
+  position: relative;
+  padding-right: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.answer-container .image-container::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 2px;
+  background-color: #ccc;
+  border-radius: 2px;
+}
+
 
 /* Styling for the answer image */
 .answer-image {
@@ -596,18 +626,17 @@ loadQuestions();
   flex-wrap: wrap;
   gap: 1vw;
   justify-content: center;
+  margin-top: 2vw;
 }
 
 .image-box {
   width: 22%;
-  height: 45vh;
+  aspect-ratio: 4 / 3;
+  max-height: 50vh;
   margin-bottom: 2vw;
-  text-align: center;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  transition: all 0.3s ease-in-out;
 }
 
 #images-wrapper > .image-box {
@@ -634,9 +663,9 @@ loadQuestions();
 
 .image-box img {
   width: 100%;
-  height: auto;
+  height: 100%;
   object-fit: contain;
-  margin-bottom: 1vw;
+  margin-bottom: 10px;
 }
 
 
