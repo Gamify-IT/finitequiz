@@ -1,6 +1,7 @@
 <template>
   <div>
     <!-- Progress bar to show how much progress the player has made -->
+    <div id="coin-container"></div>
     <div class="progress">
       <div
           name="progress-bar"
@@ -12,35 +13,114 @@
           :aria-valuemax="initialQuestionCount"
       ></div>
     </div>
+
     <!-- Display current question and answers if available -->
     <div v-if="currentQuestion">
-      <div id="question-wrapper">
-        <div id="question">
-          <h2>{{ currentQuestion.text }}</h2>
+      <div id="question-container">
+        <div id="question-wrapper">
+          <div id="question">
+            <h2 v-if="currentQuestion.text">{{ currentQuestion.text }}</h2>
+          </div>
+        </div>
+        <!-- Images below the question -->
+        <div id="images-wrapper" v-if="filteredImages.length > 0">
+          <div
+              v-for="(imageDTO) in filteredImages"
+              :key="imageDTO.imageUUID"
+              class="image-box"
+              :style="{
+    width: filteredImages.length === 1
+      ? '80%'
+      : filteredImages.length === 2
+      ? '40%'
+      : ''
+  }"
+          >
+            <img
+                v-if="imageDTO.image"
+                :src="'data:image/png;base64,' + imageDTO.image"
+                alt="Image"
+                class="clickable-image"
+                @click="openZoom('data:image/png;base64,' + imageDTO.image)"
+            />
+            <p
+                v-if="imageDTO.description"
+                class="image-description"
+            >
+              {{ imageDTO.description }}
+            </p>
+          </div>
+        </div>
+        <!-- Zoomed Image Modal -->
+        <div v-if="zoomImage" class="image-modal" @click.self="closeZoom">
+          <div class="zoom-container">
+            <!-- Zoomed Image -->
+            <img :src="zoomImage" alt="Zoomed"
+                 :style="{ width: zoomDimensions.width + 'px', height: zoomDimensions.height + 'px' }"/>
+
+            <!-- Zoom Buttons -->
+            <div class="zoom-buttons">
+              <button @click="zoomIn" class="zoom-button">+</button>
+              <button @click="zoomOut" class="zoom-button">-</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Answer options below the images -->
+        <div id="answers-list">
+          <b-button
+              v-for="answer in currentAnswers"
+              :key="answer"
+              class="answer"
+              variant="outline-info"
+              :name="'buttonId' + answer"
+              :disabled="buttonsDisabled"
+              @click="chooseAnswer($event, answer)"
+              @mouseover="showAnswer = answer"
+              @mouseleave="showAnswer = null"
+          >
+            <!-- Correct Answer Section -->
+            <div class="answer-container">
+              <template v-if="answer === currentQuestion.rightAnswer[1]">
+                <div v-if="currentCorrectAnswerImage" class="image-container">
+                  <img
+                      :src="'data:image/png;base64,' + currentCorrectAnswerImage"
+                      alt="Correct Answer Image"
+                      class="answer-image"
+                      @click.stop="openZoom('data:image/png;base64,' + currentCorrectAnswerImage)"
+
+                  />
+                </div>
+                <div v-if="currentQuestion.rightAnswer[1] !== 'no input'" class="text-container">
+                  {{ currentQuestion.rightAnswer[1] }}
+                </div>
+              </template>
+              <!-- Wrong Answer Section -->
+              <template v-else>
+                <div
+                    v-if="wrongAnswerImagesURLs.has(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')"
+                    class="image-container"
+                >
+                  <img
+                      :src="wrongAnswerImagesURLs.get(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '')"
+                      alt="Wrong Answer Image"
+                      class="answer-image"
+                      @click.stop="openZoom(wrongAnswerImagesURLs.get(currentQuestion.wrongAnswers.find(wa => wa.text === answer)?.uuid ?? '') || '')"
+
+                  />
+                </div>
+                <div v-if="answer && !answer.startsWith('no input')" class="text-container">{{ answer }}</div>
+              </template>
+            </div>
+          </b-button>
         </div>
       </div>
+      <!-- Feedback section -->
       <div id="feedback">
         <h1>
-          <!-- Display current score -->
           Current score: <span class="outlined-text">{{ correctAnsweredQuestions.length }}</span> /
           <span class="outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
         </h1>
-      </div>
-      <!-- Display list of possible answers for the current question -->
-      <div id="answers-list">
-        <b-button
-            v-for="answer in currentAnswers"
-            :key="answer"
-            class="answer"
-            variant="outline-info"
-            :name="'buttonId' + answer"
-            :disabled="buttonsDisabled"
-            @click="chooseAnswer($event, answer)"
-            @mouseover="showAnswer = answer"
-            @mouseleave="showAnswer = null"
-        >
-          {{ answer }}
-        </b-button>
       </div>
     </div>
     <!-- Show loading spinner when waiting for data -->
@@ -49,13 +129,13 @@
     <div id="end-text-wrapper" v-if="showEndscreen">
       <div v-if="!error" class="end-text">
         <p>
-          <!-- Display correct answers and total answers -->
           You answered <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length }}</span> of
-          <span class="green-bold outlined-text">{{ correctAnsweredQuestions.length + wrongAnsweredQuestions.length }}</span>
+          <span class="green-bold outlined-text">{{
+              correctAnsweredQuestions.length + wrongAnsweredQuestions.length
+            }}</span>
           questions correctly.
         </p>
         <p>
-          <!-- Display score and rewards -->
           You've earned <span class="gold-text outlined-text">{{ store.state.score }} scores</span> and
           <span class="gold-text outlined-text">{{ store.state.rewards }} coins!</span>
         </p>
@@ -71,21 +151,16 @@
             <thead>
             <tr>
               <th>Question</th>
-              <th>Your Answer</th>
               <th>Result</th>
             </tr>
             </thead>
             <tbody>
-            <!-- Display correct results -->
             <tr v-for="(result, index) in displayedCorrectResults" :key="'correct' + index">
               <td>{{ result.question.text }}</td>
-              <td>{{ result.answer }}</td>
               <td><span class="result-icon yellow">&#10003;</span></td>
             </tr>
-            <!-- Display incorrect results -->
             <tr v-for="(result, index) in displayedWrongResults" :key="'wrong' + index">
               <td>{{ result.question.text }}</td>
-              <td>{{ result.answer }}</td>
               <td><span class="result-icon red">&#10008;</span></td>
             </tr>
             </tbody>
@@ -93,24 +168,27 @@
         </div>
       </div>
       <div v-if="error" class="end-text">
-        <!-- Show error message if something went wrong -->
         {{ errorText }}
       </div>
     </div>
   </div>
 </template>
 
+
+/* eslint-disable */
 <script setup lang="ts">
-import { getQuestions, getVolumeLevel, postGameResult } from "@/ts/minigame-rest-client";
-import { GameResultDTO, Question, RoundResultDTO } from "@/ts/models";
-import { useToast } from "vue-toastification";
+import {getQuestions, getVolumeLevel, postGameResult} from "@/ts/minigame-rest-client";
+import {GameResultDTO, Question, RoundResultDTO} from "@/ts/models";
+import {useToast} from "vue-toastification";
 import store from "@/store/index";
-import { computed, ref } from "vue";
+import {computed, ref} from "vue";
 import correctAnswerSoundSource from "@/assets/music/correct_answer_sound.wav";
 import wrongAnswerSoundSource from "@/assets/music/wrong_answer_sound.mp3";
 import finishSoundSource from "@/assets/music/finish_sound.wav";
+import {getImageByUUID} from "@/ts/minigame-rest-client";
+import {watch} from "vue";
 
-let volumeLevel : number|null = 0;
+let volumeLevel: number | null = 0;
 const configurationId = ref("");
 const questions = ref<Array<Question>>([]);
 const initialQuestionCount = ref(0);
@@ -131,6 +209,56 @@ const showAnswer = ref<string | null>(null);
 const maxRowsToShow = 7;
 const displayedCorrectResults = computed(() => correctAnsweredQuestions.value.slice(0, maxRowsToShow));
 const displayedWrongResults = computed(() => wrongAnsweredQuestions.value.slice(0, maxRowsToShow));
+const images = ref<Array<{ imageUUID: string; image: string; description: string }>>([]);
+const correctAnswerImage = ref<{ imageUUID: string; image: string } | null>(null);
+const showModal = ref(false);
+const currentImageToShow = ref<{ imageUUID: string; image: string } | null>(null);
+const wrongAnswerImagesURLs = ref<Map<string, string>>(new Map());
+const zoomImage = ref<string | null>(null);
+const zoomLevel = ref(2.5);
+const zoomWidth = ref(450);
+const zoomHeight = ref(350);
+
+const zoomDimensions = computed(() => {
+  return {
+    width: zoomWidth.value * zoomLevel.value,
+    height: zoomHeight.value * zoomLevel.value
+  };
+});
+
+/**
+ * Opens the zoom view with the given image URL
+ * @param imageUrl The URL of the image to display in zoom view
+ */
+function openZoom(imageUrl: string) {
+  zoomImage.value = imageUrl;
+}
+
+/**
+ * Closes the zoom view and resets the zoom level
+ */
+function closeZoom() {
+  zoomImage.value = null;
+  zoomLevel.value = 1;
+}
+
+/**
+ * Increases the zoom level by 0.4, up to a maximum of 5
+ */
+function zoomIn() {
+  if (zoomLevel.value < 5) {
+    zoomLevel.value += 0.4;
+  }
+}
+
+/**
+ * Decreases the zoom level by 0.4, down to a minimum of 0.5
+ */
+function zoomOut() {
+  if (zoomLevel.value > 0.5) {
+    zoomLevel.value -= 0.4;
+  }
+}
 
 /**
  * Compute progress bar width
@@ -150,31 +278,88 @@ const progressBarValue = computed(() => {
   return initialQuestionCount.value - questions.value.length;
 });
 
+const currentCorrectAnswerImage = computed(() => {
+  if (!currentQuestion.value || !currentQuestion.value.rightAnswer[0]) return null;
+  return correctAnswerImage.value?.image;
+});
+
+const filteredImages = computed(() => {
+  if (!currentQuestion.value) return [];
+  return images.value.filter(
+      image => image.imageUUID === currentQuestion.value?.uuid
+  );
+});
 
 /**
- * Initialize all fields
+ * Represents an image with a unique identifier, the image URL, and a description.
+ */
+interface Image {
+  imageUUID: string;
+  image: string;
+  description: string;
+}
+
+/**
+ * Load images for a given UUID
+ * @param uuid the UUID of the question to load images for
+ */
+const loadImages = async (uuid: string) => {
+  try {
+    const response = await getImageByUUID(uuid);
+
+    if (response.data && response.data.length > 0) {
+      const newImages = response.data.filter((newImage: Image) =>
+          !images.value.some(image => image.imageUUID === newImage.imageUUID)
+      );
+      images.value.push(...newImages);
+    } else {
+      console.log("No images found for UUID:", uuid);
+    }
+  } catch (error) {
+    console.error("Error loading the images", error);
+  }
+};
+
+/**
+ * Loads questions from the server based on the configuration ID from the URL.
+ * It fetches the questions, stores them, loads related images, and initiates the next question.
+ * In case of an error, it logs the error and sets an error message.
  */
 async function loadQuestions() {
   let locationArray = window.location.toString().split("/");
   configurationId.value = locationArray[locationArray.length - 1];
-  getQuestions(configurationId.value).then((response) => {
-    questions.value = response.data;
+
+  try {
+    const questionsResponse = await getQuestions(configurationId.value);
+    questions.value = questionsResponse.data;
     initialQuestionCount.value = questions.value.length;
+
+    for (const question of questions.value) {
+      if (question.uuid) {
+        await loadImages(question.uuid);
+      }
+    }
+
     showEndscreen.value = false;
     error.value = false;
     nextQuestion();
-  });
+  } catch (error) {
+    console.error("Error loading the questions:", error);
+    errorText.value = "Error loading the questions";
+  }
+
   getVolumeLevel(configurationId.value).then((response) => {
     volumeLevel = response.data.volumeLevel;
   });
 }
+
 
 /**
  * Create audio with volume level from overworld
  * @param pathToAudioFile
  */
 function createAudioWithVolume(pathToAudioFile: string): HTMLAudioElement {
-  const audio = new Audio(pathToAudioFile); 
+  const audio = new Audio(pathToAudioFile);
   if (volumeLevel == 2 || volumeLevel == 3) {
     volumeLevel = 1;
   } else if (volumeLevel == 1) {
@@ -197,18 +382,29 @@ function chooseAnswer(buttonTarget: any, chosenAnswer: string) {
       currentQuestion.value!,
       chosenAnswer
   );
-  if (chosenAnswer === currentQuestion.value!.rightAnswer) {
+
+  if (chosenAnswer === currentQuestion.value!.rightAnswer[1]) {
     correctAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "green";
     playSound(correctAnswerSoundSource);
   } else {
+    const wrongAnswer = currentQuestion.value!.wrongAnswers.find(
+        (wa) => wa.text === chosenAnswer
+    );
+    if (wrongAnswer) {
+      roundResult = new RoundResultDTO(
+          currentQuestion.value!.id,
+          currentQuestion.value!,
+          wrongAnswer.text
+      );
+      loadWrongAnswerImage(wrongAnswer.uuid);
+    }
     wrongAnsweredQuestions.value.push(roundResult);
     document.getElementsByName(buttonName)[0].style.backgroundColor = "red";
     playSound(wrongAnswerSoundSource);
   }
   score.value =
       correctAnsweredQuestions.value.length / initialQuestionCount.value;
-
   document.getElementsByName("progress-bar")[0].style.width =
       progressBarWidth.value + "%";
   delay(1000)
@@ -236,20 +432,30 @@ function getCurrentTimeInSeconds() {
 }
 
 /**
- * Randomly choose next question
+ * Moves to the next question: Selects a random question, shuffles answers, and loads relevant images.
+ * If no questions are left, calculates and sends the game result.
+ * Displays the end screen or an error message.
  */
-function nextQuestion() {
+async function nextQuestion() {
   buttonsDisabled.value = false;
   if (questions.value.length >= 1) {
     let number = Math.floor(Math.random() * questions.value.length);
     currentQuestion.value = questions.value[number];
     questions.value.splice(number, 1);
-    currentAnswers.value = currentQuestion.value.wrongAnswers;
-    currentAnswers.value.push(currentQuestion.value.rightAnswer);
+
+    currentAnswers.value = currentQuestion.value.wrongAnswers.map(answer => answer.text);
+    currentAnswers.value.push(currentQuestion.value.rightAnswer[1]);
     currentAnswers.value = currentAnswers.value
-        .map((value) => ({ value, sort: Math.random() }))
+        .map((value) => ({value, sort: Math.random()}))
         .sort((a, b) => a.sort - b.sort)
-        .map(({ value }) => value);
+        .map(({value}) => value);
+
+    currentQuestion.value.wrongAnswers.forEach(wrongAnswer => {
+      loadWrongAnswerImage(wrongAnswer.uuid);
+    });
+    if (currentQuestion.value.rightAnswer[0]) {
+      await loadCorrectAnswerImage(currentQuestion.value.rightAnswer[0]);
+    }
   } else {
     const timeSpent = Math.ceil(getCurrentTimeInSeconds() - startTime);
     let result = new GameResultDTO(
@@ -264,20 +470,21 @@ function nextQuestion() {
     resetValues();
     loading.value = true;
     postGameResult(result)
-      .then(() => {
-        loading.value = false;
-        showEndscreen.value = true;
-        playSound(finishSoundSource);
-      })
-      .catch((reason) => {
-        loading.value = false;
-        showEndscreen.value = true;
-        error.value = true;
-        errorText.value = reason.response.data.message;
-        toast.error(reason.response.data.message);
-      });
+        .then(() => {
+          loading.value = false;
+          showEndscreen.value = true;
+          playSound(finishSoundSource);
+        })
+        .catch((reason) => {
+          loading.value = false;
+          showEndscreen.value = true;
+          error.value = true;
+          errorText.value = reason.response.data.message;
+          toast.error(reason.response.data.message);
+        });
   }
 }
+
 
 /**
  * Reset fields
@@ -291,15 +498,67 @@ function resetValues() {
 /**
  * Play sound with neccesary volume level
  */
-async function playSound(pathToAudioFile: string){
+async function playSound(pathToAudioFile: string) {
   const sound = await createAudioWithVolume(pathToAudioFile);
   sound.play();
 }
 
+/**
+ * Fetch and load the correct answer image based on the UUID
+ * @param uuid UUID of the correct answer's image
+ */
+const loadCorrectAnswerImage = async (uuid: string) => {
+  try {
+    const response = await getImageByUUID(uuid);
+    if (response.data && response.data.length > 0) {
+      correctAnswerImage.value = response.data[0];
+    } else {
+      console.log("No correct answer image found for UUID:", uuid);
+    }
+  } catch (error) {
+    console.error("Error loading the correct answer image", error);
+  }
+};
+
+/**
+ * Opens the modal with the clicked image
+ * @param imageDTO The image data to show in the modal
+ */
+function openModal(imageDTO: { imageUUID: string; image: string }) {
+  currentImageToShow.value = imageDTO;
+  showModal.value = true;
+}
+
+
+/**
+ * Closes the modal and clears the displayed image
+ */
+function closeModal() {
+  showModal.value = false;
+  currentImageToShow.value = null;
+}
+
+/**
+ * Load the wrong answer image for a given UUID
+ * @param uuid UUID of the wrong answer's image
+ */
+const loadWrongAnswerImage = async (uuid: string) => {
+  try {
+    const response = await getImageByUUID(uuid);
+    if (response.data && response.data.length > 0) {
+      wrongAnswerImagesURLs.value.set(uuid, 'data:image/png;base64,' + response.data[0].image);
+    } else {
+      console.log("No image found for UUID:", uuid);
+    }
+  } catch (error) {
+    console.error("Error loading the wrong answer image", error);
+  }
+};
 loadQuestions();
 </script>
 
 <style scoped>
+
 /* Styling for the end text paragraphs */
 .end-text p:first-of-type,
 .end-text p:nth-of-type(2) {
@@ -311,54 +570,133 @@ loadQuestions();
   margin-left: 2vw;
   margin-top: 1vw;
   float: left;
-  height: 10vh;
+  height: 25vh;
   width: 47vw;
   font-size: 2vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: left;
 }
-/* Styling for the question container */
-#question-wrapper {
-  float: left;
-  margin-left: 2vw;
+
+/* Container for the content of an answer */
+.answer-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin: 10px 0;
+  position: relative;
+}
+
+.answer-container .image-container {
+  position: relative;
+  padding-right: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.answer-container .image-container::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 2px;
+  background-color: #ccc;
+  border-radius: 2px;
+}
+
+
+/* Styling for the answer image */
+.answer-image {
+  max-width: 300px;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+/* Styling for the answer text container */
+.text-container {
+  flex-grow: 1;
+  text-align: left;
+  font-size: 2vh;
+  line-height: 1.5;
+}
+
+#images-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1vw;
+  justify-content: center;
   margin-top: 2vw;
-  height: 25vh;
-  width: 47vw;
-  border: 1px solid black;
 }
-/* Styling for the question text */
-#question {
-  height: 25vh;
-  width: 47vw;
+
+.image-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem;
+}
+.image-description {
+  margin-top: 0.5rem;
   text-align: center;
-  vertical-align: middle;
-  display: table-cell;
 }
-/* Styling for the feedback area */
+
+#images-wrapper > .image-box {
+  width: calc(25% - 1vw);
+}
+
+@media (max-width: 1200px) {
+  #images-wrapper > .image-box {
+    width: calc(33% - 1vw);
+  }
+}
+
+@media (max-width: 800px) {
+  #images-wrapper > .image-box {
+    width: calc(50% - 1vw);
+  }
+}
+
+@media (max-width: 500px) {
+  #images-wrapper > .image-box {
+    width: 100%;
+  }
+}
+
+.image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  margin-bottom: 10px;
+}
+
+
+/* Styling for the feedback section */
 #feedback {
-  margin-left: 2vw;
   margin-top: 2vw;
-  float: left;
-  height: 25vh;
-  width: 47vw;
+  width: 100%;
+  text-align: center;
 }
+
 /* Styling for the progress bar */
 .progress-bar {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
-  -webkit-box-shadow: inset 0 0 0 2px #212529 !important;
-  -moz-box-shadow: inset 0 0 0 2px #212529 !important;
   box-shadow: inset 0 0 0 2px #212529 !important;
   border: none !important;
 }
-/* Styling for the overall progress bar container */
+
+/* Styling for the progress container */
 .progress {
   border-radius: 0 !important;
   background-color: white !important;
-  -webkit-box-shadow: inset 0 0 0 2px #212529 !important;
-  -moz-box-shadow: inset 0 0 0 2px #212529 !important;
   box-shadow: inset 0 0 0 2px #212529 !important;
   border: none !important;
 }
-/* Styling for the end screen container */
+
+/* Styling for the end screen wrapper */
 #end-text-wrapper {
   height: 100vh;
   width: 100%;
@@ -372,12 +710,14 @@ loadQuestions();
   background-attachment: fixed;
   opacity: 1.6;
 }
+
 /* Styling for the end text */
 .end-text {
   text-align: center;
   font-size: 6vh;
   color: white;
 }
+
 /* Styling for the loader spinner */
 .loader {
   margin: auto;
@@ -388,12 +728,14 @@ loadQuestions();
   height: 2vw;
   animation: spin 2s linear infinite;
 }
-/* Styling for gold-colored text */
+
+/* Styling for the gold-colored text */
 .gold-text {
   color: gold;
   font-weight: bold;
 }
-/* Container for the results table */
+
+/* Styling for the results table container */
 .results-table-container {
   margin: 0 auto;
   width: 80%;
@@ -401,16 +743,19 @@ loadQuestions();
   overflow-y: auto;
   border: 1px solid white;
 }
-/* Styling for the results summary section */
+
+/* Styling for the results section */
 .results {
   margin-top: 20px;
   text-align: center;
   color: white;
 }
-/* Styling for the results table */
+
+/* Styling for the results table heading */
 .results h2 {
   font-size: 4vh;
 }
+
 /* Styling for the results table */
 .results-table {
   width: 100%;
@@ -419,7 +764,8 @@ loadQuestions();
   color: white;
   opacity: 0.75;
 }
-/* Styling for table header and cells */
+
+/* Styling for table headers and cells in the results table */
 .results-table th,
 .results-table td {
   border: 1px solid white;
@@ -429,14 +775,8 @@ loadQuestions();
   color: white;
   text-align: center;
 }
-.results-table-container {
-  margin: 0 auto;
-  width: 80%;
-  max-height: 50vh;
-  overflow-y: auto;
-  border: 1px solid white;
-}
-/* Icon styles for results (yellow for correct, red for incorrect) */
+
+/* Styling for result icons (check marks and crosses) in the results table */
 .results-table .result-icon.yellow {
   color: yellow;
   font-size: 1.8vh;
@@ -451,37 +791,104 @@ loadQuestions();
   line-height: 1.8;
 }
 
-/* Green bold text for score display */
+/* Styling for the green-bold text */
 .green-bold {
   color: #6a2900;
   font-weight: bold;
 }
-/* Styling for the answer list container */
+
+/* Styling for the answers list container */
 #answers-list {
   position: relative;
 }
-/* Info display for each answer (shown on hover) */
-.answer-info {
-  position: absolute;
+
+
+/* Styling for the outlined text (with a text shadow) */
+.outlined-text {
+  text-shadow: -1px -1px 0 #fff,
+  1px -1px 0 #fff,
+  -1px 1px 0 #fff,
+  1px 1px 0 #fff;
+}
+
+/* Styling for the modal content images */
+.modal-content img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+
+/* Styling for the question container */
+#question-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2vw;
+  width: 100%;
+}
+
+/* Styling for the question wrapper */
+#question-wrapper {
+  width: 80%;
+  padding: 1vw;
+  border: 1px solid black;
+  height: 20vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Styling for the question text */
+#question {
+  text-align: center;
+  font-size: 3vh;
+}
+
+.image-modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
   top: 0;
   left: 0;
-  display: none;
+  width: 100%;
+  height: 100%;
   background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 10px;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.zoom-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-buttons {
+  display: flex;
+  flex-direction: column;
+  margin-left: 10px;
+}
+
+.zoom-button {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid #fff;
   border-radius: 5px;
+  font-size: 20px;
+  padding: 5px;
+  cursor: pointer;
+  margin: 5px 0;
 }
-/* Show info when hovering over an answer */
-.answer:hover .answer-info {
-  display: block;
+
+.zoom-button:hover {
+  background-color: rgba(255, 255, 255, 1);
 }
-/* Text with an outline effect */
-.outlined-text {
-  text-shadow:
-      -1px -1px 0 #fff,
-      1px -1px 0 #fff,
-      -1px 1px 0 #fff,
-      1px 1px 0 #fff;
+
+.image-modal img {
+  max-width: 90vw;
+  max-height: 90vh;
 }
 
 </style>
