@@ -43,7 +43,10 @@
                 class="clickable-image"
                 @click="openZoom('data:image/png;base64,' + imageDTO.image)"
             />
-            <p v-if="imageDTO.description" class="image-description">
+            <p
+                v-if="imageDTO.description"
+                class="image-description"
+            >
               {{ imageDTO.description }}
             </p>
           </div>
@@ -630,13 +633,14 @@ loadQuestions();
 }
 
 .image-box {
-  width: 22%;
-  aspect-ratio: 4 / 3;
-  max-height: 50vh;
-  margin-bottom: 2vw;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  margin: 1rem;
+}
+.image-description {
+  margin-top: 0.5rem;
+  text-align: center;
 }
 
 #images-wrapper > .image-box {
