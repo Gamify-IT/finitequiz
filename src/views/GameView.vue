@@ -438,6 +438,9 @@ function getCurrentTimeInSeconds() {
  */
 async function nextQuestion() {
   buttonsDisabled.value = false;
+
+  correctAnswerImage.value = null;
+
   if (questions.value.length >= 1) {
     let number = Math.floor(Math.random() * questions.value.length);
     currentQuestion.value = questions.value[number];
@@ -453,6 +456,7 @@ async function nextQuestion() {
     currentQuestion.value.wrongAnswers.forEach(wrongAnswer => {
       loadWrongAnswerImage(wrongAnswer.uuid);
     });
+
     if (currentQuestion.value.rightAnswer[0]) {
       await loadCorrectAnswerImage(currentQuestion.value.rightAnswer[0]);
     }
@@ -484,6 +488,7 @@ async function nextQuestion() {
         });
   }
 }
+
 
 
 /**
